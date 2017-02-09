@@ -1,0 +1,400 @@
+#!/bin/zsh
+# Run with 'sudo zsh'
+
+# Change the install location if necessary:
+prefix=/usr
+
+#{{{ Functions
+
+die() {
+	>&2 echo "\n$*!"
+	exit 1
+}
+
+diecmd() {
+	>&2 echo "\nCommand not found: $1"
+	>&2 echo "Open a new shell and run this script again to continue with the setup."
+	exit 127
+}
+
+warn() {
+	>&2 echo "\n$*!\n"
+}
+
+exist() {
+	command -v $1 > /dev/null
+}
+
+islocal() {
+	bin=$(which $1)
+	exist $1 && test ${bin#*$prefix/bin} != $bin
+}
+
+inapps() {
+	test -d "/Applications/$1.app" || test -d "$HOME/Applications/$1.app"
+}
+
+inhome() {
+	test -e "$HOME/$1"
+}
+
+intmp() {
+	test -f "$TMPDIR/$1"
+}
+
+inlists() {
+	grep -q "$1" /etc/apt/sources.list /etc/apt/sources.list.d/*
+}
+
+#}}}
+
+#{{{ Environment variables
+
+dist=$(lsb_release -c | cut -f 2)
+
+echo "PATH = $PATH"
+[ ${PATH#*$prefix/bin} = $PATH ] && export PATH="$prefix/bin:$PATH"
+export TMPDIR=${TMPDIR:-/tmp}
+export RBENV_ROOT="$prefix/rbenv"
+export PYENV_ROOT="$prefix/pyenv"
+export NVM_DIR="$prefix/nvm"
+export PERLBREW_ROOT="$prefix/perlbrew"
+
+#}}}
+
+#{{{ Dotfiles
+
+inhome .config/git || mkdir -p "$HOME/.config/git"
+inhome .vim || mkdir "$HOME/.vim"
+if ! inhome .config/dotfiles && ! inhome .localenv; then
+	cfg="$HOME/.config/dotfiles"
+	url="https://github.com/vbwx/dotfiles.git"
+	git clone $url "$cfg" || warn "Can't clone $url"
+
+	if [ -d "$cfg" ]; then
+		inhome .bash_profile      || ln -s "$cfg/bash_profile" "$HOME/.bash_profile"
+		inhome .bashrc            || ln -s "$cfg/bashrc" "$HOME/.bashrc"
+		inhome .coffeelint.json   || ln -s "$cfg/coffeelint.json" "$HOME/.coffeelint.json"
+		inhome .eslintrc.json     || ln -s "$cfg/eslintrc.json" "$HOME/.eslintrc.json"
+		inhome .config/git/config || ln -s "$cfg/gitconfig" "$HOME/.config/git/config"
+		inhome .config/git/ignore || ln -s "$cfg/gitignore" "$HOME/.config/git/ignore"
+		inhome .vim/vimrc         || ln -s "$cfg/vimrc" "$HOME/.vim/vimrc"
+		inhome .vim/gvimrc        || ln -s "$cfg/gvimrc" "$HOME/.vim/gvimrc"
+		inhome .profile           || ln -s "$cfg/profile" "$HOME/.profile"
+		inhome .scss-lint.yml     || ln -s "$cfg/scss-lint.yml" "$HOME/.scss-lint.yml"
+		inhome .tern-project      || ln -s "$cfg/tern-project.json" "$HOME/.tern-project"
+		inhome .localenv          || ln -s "$cfg/localenv" "$HOME/.localenv"
+	fi
+fi
+
+#}}}
+
+#{{{ Packages
+
+exist ag               || brew install the_silver_searcher
+exist automake         || brew install automake
+poured bash-completion || brew install bash-completion
+tapped caskroom        || brew tap     caskroom/cask
+exist cmake            || brew install cmake
+poured coreutils       || brew install coreutils
+exist cowsay           || brew install cowsay
+exist cscope           || brew install cscope
+islocal ctags          || brew install ctags
+exist fdupes           || brew install fdupes
+exist ffmpeg           || brew install ffmpeg
+exist fortune          || brew install fortune
+exist fzf              || brew install fzf
+islocal git            || brew install git
+exist git-flow         || brew install git-flow
+islocal gzip           || brew install homebrew/dupes/gzip
+islocal less           || brew install homebrew/dupes/less
+exist lua              || brew install lua
+islocal rsync          || brew install homebrew/dupes/rsync
+exist php-cs-fixer     || brew install homebrew/php/php-cs-fixer
+islocal php            || brew install homebrew/php/php70
+poured libtool         || brew install libtool
+poured libvo-aacenc    || brew install libvo-aacenc
+poured libyaml         || brew install libyaml
+poured msgpack         || brew install msgpack
+exist pyenv            || brew install pyenv
+exist rbenv            || brew install rbenv
+poured readline        || brew install readline
+islocal svn            || brew install subversion
+exist tig              || brew install tig
+exist tree             || brew install tree
+exist wdiff            || brew install wdiff
+exist xz               || brew install xz
+
+#}}}
+
+#{{{ Casks
+
+inapps "AppCleaner"                          || brew cask install appcleaner
+inapps "Dropbox"                             || brew cask install dropbox
+inapps "Firefox"                             || brew cask install firefox
+inapps "GitHub Desktop"                      || brew cask install github-desktop
+inapps "Google Chrome"                       || brew cask install google-chrome
+inapps "HandBrake"                           || brew cask install handbrake
+inapps "MacVim"                              || brew cask install macvim
+inapps "MAMP/MAMP"                           || brew cask install mamp
+inapps "OpenOffice"                          || brew cask install openoffice
+inapps "Opera"                               || brew cask install opera
+inapps "Platypus"                            || brew cask install platypus
+inapps "Skim"                                || brew cask install skim
+inapps "Skype"                               || brew cask install skype
+inapps "Suspicious Package"                  || brew cask install suspicious-package
+inapps "TeamViewer"                          || brew cask install teamviewer
+inapps "Things"                              || brew cask install things
+inapps "Transmission"                        || brew cask install transmission
+inapps "Transmit"                            || brew cask install transmit
+inapps "VLC"                                 || brew cask install vlc
+
+#}}}
+
+#{{{ Apt
+#{{{ Repositories
+
+if ! inlists download.virtualbox.org; then
+	echo "deb http://download.virtualbox.org/virtualbox/debian $dist contrib" \
+		>> /etc/apt/sources.list.d/oracle.list
+
+	wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | apt-key add -
+	wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
+fi
+if ! inlists zeal-developers/ppa; then
+	add-apt-repository ppa:zeal-developers/ppa
+fi
+
+#}}}
+
+#{{{ Packages
+
+apt update
+apt upgrade
+
+exist clipit || apt install clipit
+exist dkms || apt install dkms
+exist dropbox || apt install dropbox
+exist git || apt install git
+exist gvim || apt install vim-gnome
+exist java || apt install default-jre
+exist slack || apt install slack
+exist svn || apt install subversion
+exist tree || apt install tree
+exist virtualbox || apt install virtualbox-5.1
+exist zeal || apt install zeal
+
+if ! exist google-chrome; then
+	intmp google-chrome.deb || \
+		wget -O /tmp/google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+	dpkg -i /tmp/google-chrome.deb && rm -f /tmp/google-chrome.deb
+fi
+
+apt install -f
+
+#}}}
+#}}}
+
+#{{{ Download shared files
+
+if [ ! -d $prefix/share/unicode ]; then
+	url="http://www.unicode.org/Public/UNIDATA/UnicodeData.txt"
+	curl -fsSLo "$prefix/share/unicode/UnicodeData.txt" $url || warn "Can't download $url"
+fi
+
+#}}}
+
+#{{{ Node.js
+
+if [ -f "$NVM_DIR/nvm.sh" ]; then
+	source "$NVM_DIR/nvm.sh"
+else
+	git clone https://github.com/creationix/nvm.git $NVM_DIR && (
+		cd $NVM_DIR
+		git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin`
+	)
+fi
+exist nvm || diecmd nvm
+
+if ! islocal node; then
+	nvm install node || die "Can't install Node"
+	nvm use node && nvm alias default node
+fi
+[ -e $prefix/node ] || ln -s "$NVM_DIR/versions/node/$(nvm current)" $prefix/node || warn "Can't symlink $prefix/node"
+
+#{{{ Packages
+
+exist npm                || diecmd npm
+exist bower              || npm install -g bower
+exist coffee             || npm install -g coffee-script
+exist coffeelint         || npm install -g coffeelint
+exist commitizen         || npm install -g commitizen
+exist eslint             || npm install -g eslint
+exist grunt              || npm install -g grunt-cli
+exist gulp               || npm install -g gulp
+exist instant-markdown-d || npm install -g instant-markdown-d
+exist js-beautify        || npm install -g js-beautify
+exist jsctags            || npm install -g jsctags
+exist marked             || npm install -g marked
+exist tsc                || npm install -g typescript
+exist yo                 || npm install -g yo
+
+#}}}
+#}}}
+
+#{{{ Ruby
+
+exist rbenv || diecmd rbenv
+eval "$(rbenv init -)"
+
+if ! islocal ruby; then
+	ver=$(rbenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')
+	[ $ver ] || die "Can't fetch latest Ruby version"
+	rbenv install $ver || die "Can't install Ruby"
+	rbenv global $ver
+fi
+
+#{{{ Gems
+
+exist gem       || diecmd gem
+islocal gem     || die "rbenv doesn't seem to be active"
+exist compass   || gem install -N compass
+exist sass      || gem install -N sass sass-globbing
+exist scss-lint || gem install -N scss_lint
+
+#}}}
+#}}}
+
+#{{{ Perl
+
+if ! exist perlbrew; then
+	url="https://install.perlbrew.pl"
+	curl -fLo "$TMPDIR/perlbrew.sh" $url || warn "Can't download $url"
+	intmp perlbrew.sh && bash "$TMPDIR/perlbrew.sh" || die "Can't install Perlbrew"
+fi
+exist perlbrew || diecmd perlbrew
+source "$PERLBREW_ROOT/etc/bashrc"
+
+if ! islocal perl; then
+	perlbrew install -n stable || die "Can't install Perl"
+	ver=$(perlbrew list | perl -ne '/perl-[\d.]+/; print $&; $& and exit;')
+	[ $ver ] || die "Can't find out installed Perl version"
+	perlbrew alias create perl-$ver default && perlbrew switch default
+fi
+
+#{{{ Modules
+
+exist cpan   || diecmd cpan
+islocal cpan || die "perlbrew doesn't seem to be active"
+
+#}}}
+#}}}
+
+#{{{ Python
+
+exist pyenv || diecmd pyenv
+eval "$(pyenv init -)"
+
+if ! islocal python; then
+	ver=$(pyenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')
+	[ $ver ] || die "Can't fetch latest Python version"
+	CFLAGS="-I$(xcrun --show-sdk-path)/usr/include" pyenv install $ver || die "Can't install Python"
+	pyenv global $ver
+fi
+
+#}}}
+
+#{{{ PHP
+
+if ! exist composer; then
+	url="https://getcomposer.org/installer"
+	curl -fLo "$TMPDIR/composer.php" $url || warn "Can't download $url"
+	intmp composer.php && php "$TMPDIR/composer.php" --install-dir=$prefix/bin --filename=composer || die "Can't install Composer"
+fi
+
+#}}}
+
+#{{{ Vim
+
+[ -f "uvim" ] || die "Can't find uvim script"
+link=$(readlink -n $prefix/bin/uvim)
+[ "${link#*mvim}" = "$link" ] && cp -f uvim $prefix/bin
+
+islocal vi       || ln -s $prefix/bin/uvim $prefix/bin/vi
+islocal vim      || ln -s $prefix/bin/uvim $prefix/bin/vim
+islocal gvim     || ln -s $prefix/bin/uvim $prefix/bin/gvim
+islocal rvim     || ln -s $prefix/bin/uvim $prefix/bin/rvim
+islocal rgvim    || ln -s $prefix/bin/uvim $prefix/bin/rgvim
+islocal view     || ln -s $prefix/bin/uvim $prefix/bin/view
+islocal gview    || ln -s $prefix/bin/uvim $prefix/bin/gview
+islocal vimdiff  || ln -s $prefix/bin/uvim $prefix/bin/vimdiff
+islocal gvimdiff || ln -s $prefix/bin/uvim $prefix/bin/gvimdiff
+islocal viman    || ln -s $prefix/bin/uvim $prefix/bin/viman
+islocal gviman   || ln -s $prefix/bin/uvim $prefix/bin/gviman
+
+islocal vim || diecmd mvim
+
+if ! inhome .vim/spell/de.utf-8.spl; then
+	url="http://ftp.vim.org/pub/vim/runtime/spell/de.utf-8.spl"
+	curl -fsSLo --create-dirs "$HOME/.vim/spell/de.utf-8.spl"
+fi
+if ! inhome .vim/autoload/plug.vim; then
+	url="https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
+	curl -fsSLo --create-dirs "$HOME/.vim/autoload/plug.vim" $url || warn "Can't download $url"
+fi
+if ! inhome .vim/plugged; then
+	vim -c PlugInstall -c q
+fi
+
+#}}}
+
+#{{{ Prezto
+
+if [ ! -d "${ZDOTDIR:-$HOME}/.zprezto" ]; then
+	git clone --recursive https://github.com/vbwx/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
+	setopt EXTENDED_GLOB
+	for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do
+		ln -s "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
+	done
+fi
+
+echo "Shell = $SHELL"
+[ $SHELL = "/bin/zsh" ] || chsh -s /bin/zsh
+
+#}}}
+
+#{{{ Set PATH for all apps
+
+lpaths=(
+	$prefix/bin
+	$prefix/sbin
+	$prefix/node/bin
+	$prefix/perlbrew/perls/default/bin
+	$prefix/pyenv/shims
+	$prefix/rbenv/shims
+)
+guipath=$(launchctl getenv PATH)
+echo "GUI PATH = $guipath"
+
+if [ "${guipath#*$prefix/bin}" = "$guipath" ]; then
+	echo "New GUI PATH:"
+	echo $(IFS=: ; echo "${lpaths[*]}"):$guipath
+	sudo launchctl config user path "$(IFS=: ; echo "${lpaths[*]}"):$guipath"
+fi
+if [ $(head -n 1 /etc/paths) != "$prefix/bin" ]; then
+	(IFS=$'\n'; echo "${lpaths[*]}" > "$TMPDIR/paths")
+	cat /etc/paths >> "$TMPDIR/paths"
+	if [ $(head -n 1 "$TMPDIR/paths") = "$prefix/bin" ]; then
+		echo "New /etc/paths:"
+		cat "$TMPDIR/paths"
+		sudo mv -f "$TMPDIR/paths" /etc || die "Can't overwrite /etc/paths"
+	else
+		die "Can't create temporary paths file"
+	fi
+fi
+
+#}}}
+
+echo "All done."
+
+# vim: fdm=marker:fdl=0:fdc=3
