@@ -143,6 +143,7 @@ exist php-cs-fixer     || brew install homebrew/php/php-cs-fixer
 exist pyenv            || brew install pyenv
 exist rbenv            || brew install rbenv
 poured readline        || brew install readline
+exist rename           || brew install rename
 islocal rsync          || brew install homebrew/dupes/rsync
 islocal svn            || brew install subversion
 exist tig              || brew install tig

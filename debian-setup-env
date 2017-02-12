@@ -178,6 +178,7 @@ exist dropbox || apt install dropbox
 exist git || apt install git
 exist gvim || apt install vim-gnome
 exist java || apt install default-jre
+exist rename || apt install rename
 exist slack || apt install slack
 exist svn || apt install subversion
 exist tree || apt install tree
