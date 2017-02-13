@@ -99,7 +99,7 @@ if [ "$gui" ]; then
 	fi
 else
 	if [ "$cmd" ]; then
-		exec "$binary" $opts +"$cmd" ${1:+"$@"}
+		exec "$binary" $opts "+$cmd" ${1:+"$@"}
 	else
 		exec "$binary" $opts ${1:+"$@"}
 	fi

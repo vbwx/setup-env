@@ -2,7 +2,7 @@
 # Run with 'sudo zsh'
 
 # Change the install location if necessary:
-prefix=/usr
+prefix=/usr/local
 
 #{{{ Functions
 

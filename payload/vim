@@ -18,36 +18,6 @@
 # 2. Set the editor command in the Skim preferences to that path.
 # 3. Set the editor arguments to %line "%file"
 
-if [ -z "$VIM_APP_DIR" ]
-then
-	myDir="`dirname "$0"`"
-	myAppDir="$myDir/../Applications"
-	suspects=(
-		/Applications
-		~/Applications
-		/Applications/vim
-		~/Applications/vim
-		$myDir
-		$myDir/vim
-		$myAppDir
-		$myAppDir/vim
-		/Applications/Utilities
-		/Applications/Utilities/vim
-	)
-	for i in ${suspects[@]}; do
-		if [ -x "$i/MacVim.app" ]; then
-			VIM_APP_DIR="$i"
-			break
-		fi
-	done
-fi
-if [ -z "$VIM_APP_DIR" ]
-then
-	echo "Sorry, cannot find MacVim.app.  Try setting the VIM_APP_DIR environment variable to the directory containing MacVim.app." >&2
-	exit 1
-fi
-binary="$VIM_APP_DIR/MacVim.app/Contents/MacOS/Vim"
-
 # Next, peek at the name used to invoke this script, and set options
 # accordingly.
 
@@ -57,7 +27,7 @@ opts=
 cmd=
 
 # GUI mode, implies forking
-case "$name" in m*|g*|rm*|rg*) gui=true ;; esac
+case "$name" in g*|rg*) gui=true ;; esac
 
 # Restricted mode
 case "$name" in r*) opts="$opts -Z --noplugin";; esac
@@ -93,14 +63,14 @@ if [ "$gui" ]; then
 	# But if you use open instead, you will need to fully qualify the
 	# path names for any filenames you specify, which is hard.
 	if [ "$cmd" ]; then
-		> /dev/null exec "$binary" -g $opts "+$cmd" ${1:+"$@"}
+		> /dev/null exec /usr/bin/vim -g $opts "+$cmd" ${1:+"$@"}
 	else
-		> /dev/null exec "$binary" -g $opts ${1:+"$@"}
+		> /dev/null exec /usr/bin/vim -g $opts ${1:+"$@"}
 	fi
 else
 	if [ "$cmd" ]; then
-		exec "$binary" $opts +"$cmd" ${1:+"$@"}
+		exec /usr/bin/vim $opts "+$cmd" ${1:+"$@"}
 	else
-		exec "$binary" $opts ${1:+"$@"}
+		exec /usr/bin/vim $opts ${1:+"$@"}
 	fi
 fi
