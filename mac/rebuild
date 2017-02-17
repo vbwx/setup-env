@@ -1,0 +1,68 @@
+#!/bin/bash
+
+set -euo pipefail
+
+targets=(
+	appcache
+	iconcache
+	spotlight
+)
+
+if [ $# -eq 0 ]; then
+	>&2 echo "What do you want to rebuild?"
+	listtargets
+	exit 1
+fi
+
+for t in $*; do
+	case $t in
+		all)
+			$0 ${targets[*]}
+			;;
+		iconcache)
+			sudo find /private/var/folders -name com.apple.dock.iconcache -exec rm {} \;
+			sudo find /private/var/folders -name com.apple.iconservices -exec rm -rf {} \;
+			sudo rm -rf /Library/Caches/com.apple.iconservices.store
+			;;
+		appcache)
+			cd /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support
+			./lsregister -kill -r -domain local-domain system -domain user -seed
+			;;
+		spotlight)
+			sudo mdutil -E /
+			;;
+		help)
+			help
+			;;
+		*)
+			alt=($(which rebuild))
+			if [ ${#alt} -gt 1 ]; then
+				${alt[2]} "$@"
+			else
+				>&2 echo "Unknown target: $t"
+				help 1
+			fi
+	esac
+done
+
+function help {
+	echo "NAME"
+	echo "\trebuild"
+	echo
+	echo "SYNOPSIS"
+	echo "\trebuild target_name ..."
+	echo "\trebuild help"
+	echo
+	echo "DESCRIPTION"
+	echo "This utility provides a simple interface to rebuild caches and databases."
+	echo
+	echo "TARGETS"
+	listtargets
+	exit $*
+}
+
+function listtargets {
+	echo "\tall"
+	for t in ${targets[*]}
+		echo "\t$t"
+}
