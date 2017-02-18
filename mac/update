@@ -4,13 +4,39 @@ set -euo pipefail
 
 targets=(
 	brew
-	node
-	perl
+	cpan
+	gem
+	npm
+	nvm
+	pip
 	prezto
-	python
-	ruby
-	vim
+	vim-plug
 )
+
+function help {
+	cat << END
+NAME
+	update
+
+SYNOPSIS
+	update target_name ...
+	update help
+
+DESCRIPTION
+	This utility provides a simple interface to perform updates of programs and packages.
+
+TARGETS
+END
+	listtargets
+	exit $*
+}
+
+function listtargets {
+	echo -e "\tall"
+	for t in ${targets[*]}; do
+		echo -e "\t$t"
+	done
+}
 
 if [ $# -eq 0 ]; then
 	>&2 echo "What do you want to update?"
@@ -34,58 +60,38 @@ for t in $*; do
 			git pull
 			git submodule update --init --recursive
 			;;
-		node)
+		nvm)
 			cd "$NVM_DIR"
 			git fetch origin
 			git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin`
 			source "$NVM_DIR/nvm.sh"
+			;;
+		npm)
 			npm install -g npm@latest
 			npm update -g
 			;;
-		perl)
+		cpan)
 			cpan -u
 			;;
-		python)
+		pip)
 			pip freeze --local | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
 			;;
-		ruby)
+		gem)
 			gem update
 			;;
-		vim)
+		vim-plug)
 			vim +PlugUpgrade +PlugUpdate +qall
 			;;
 		help)
 			help
 			;;
 		*)
-			alt=($(which update))
-			if [ ${#alt} -gt 1 ]; then
-				${alt[2]} "$@"
+			alt=($(which -a update))
+			if [ ${#alt[@]} -gt 1 ]; then
+				${alt[1]} "$@"
 			else
-				>&2 echo "Unknown target: $t"
+				>&2 echo -e "Unknown target: $t\n"
 				help 1
 			fi
 	esac
 done
-
-function help {
-	echo "NAME"
-	echo "\tupdate"
-	echo
-	echo "SYNOPSIS"
-	echo "\tupdate target_name ..."
-	echo "\tupdate help"
-	echo
-	echo "DESCRIPTION"
-	echo "This utility provides a simple interface to perform updates of programs and packages."
-	echo
-	echo "TARGETS"
-	listtargets
-	exit $*
-}
-
-function listtargets {
-	echo "\tall"
-	for t in ${targets[*]}
-		echo "\t$t"
-}
