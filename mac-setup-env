@@ -113,7 +113,6 @@ exist brew || diecmd brew
 tapped caskroom || brew tap caskroom/cask
 
 brew update
-brew upgrade
 
 #{{{ Packages
 
@@ -174,6 +173,7 @@ inapps "TeamViewer"                          || brew cask install teamviewer
 inapps "Things"                              || brew cask install things
 inapps "Transmission"                        || brew cask install transmission
 inapps "Transmit"                            || brew cask install transmit
+inapps "VirtualBox"                          || brew cask install virtualbox
 inapps "VLC"                                 || brew cask install vlc
 inlibs "TeX"                                 || brew cask install mactex
 inlibs "PreferencePanes/JavaControlPanel.prefPane" || brew cask install java

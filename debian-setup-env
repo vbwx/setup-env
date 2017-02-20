@@ -27,11 +27,11 @@ exist() {
 
 islocal() {
 	bin=$(which $1)
-	exist $1 && test ${bin#*$prefix/bin} != $bin
+	exist $1 && test "${bin#*$prefix/bin}" != "$bin"
 }
 
-inapps() {
-	test -d "/Applications/$1.app" || test -d "$HOME/Applications/$1.app"
+inshare() {
+	test -e "/usr/share/$1" || test -e "$prefix/share/$1"
 }
 
 inhome() {
@@ -154,31 +154,34 @@ inapps "VLC"                                 || brew cask install vlc
 #{{{ Apt
 #{{{ Repositories
 
+exist apt || diecmd apt-get
+
 if ! inlists download.virtualbox.org; then
 	echo "deb http://download.virtualbox.org/virtualbox/debian $dist contrib" \
 		>> /etc/apt/sources.list.d/oracle.list
-
 	wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | apt-key add -
 	wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
 fi
-if ! inlists zeal-developers/ppa; then
-	add-apt-repository ppa:zeal-developers/ppa
+if ! inlists rabbitvcs; then
+	echo "deb http://ppa.launchpad.net/rabbitvcs/ppa/ubuntu trusty main" > /etc/apt/sources.list.d/rabbitvcs.list
 fi
+
+inlists zeal-developers || add-apt-repository ppa:zeal-developers/ppa
 
 #}}}
 
 #{{{ Packages
 
 apt update
-apt upgrade
 
 exist clipit || apt install clipit
 exist dkms || apt install dkms
 exist dropbox || apt install dropbox
 exist git || apt install git
-exist gvim || apt install vim-gnome
+exist gvim || apt install vim-gtk
 exist java || apt install default-jre
 exist rename || apt install rename
+inshare nautilus-python/extensions/RabbitVCS.py || apt install rabbitvcs-nautilus
 exist slack || apt install slack
 exist svn || apt install subversion
 exist tree || apt install tree

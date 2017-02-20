@@ -52,6 +52,7 @@ for t in $*; do
 		apt)
 			apt update
 			apt dist-upgrade
+			apt autoremove
 			apt autoclean
 			;;
 		prezto)
