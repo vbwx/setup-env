@@ -1,0 +1,20 @@
+26,27c26,27
+<     key <LCTL> {	[ Control_L		]	};
+<     key <LWIN> {	[ Super_L		]	};
+---
+>     key <LCTL> {	[ Super_L		]	};
+>     key <LWIN> {	[ Control_L		]	};
+30,31c30,31
+<     key <RCTL> {	[ Control_R		]	};
+<     key <RWIN> {	[ Super_R		]	};
+---
+>     key <RCTL> {	[ Super_R		]	};
+>     key <RWIN> {	[ Control_R		]	};
+37c37
+<     modifier_map Control{ Control_L, Control_R };
+---
+>     modifier_map Control{ Super_L, Super_R };
+39c39
+<     modifier_map Mod4   { Super_L, Super_R };
+---
+>     modifier_map Mod4   { Control_L, Control_R };
