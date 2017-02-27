@@ -51,6 +51,8 @@ inlists() {
 #{{{ Environment variables
 
 dist=$(lsb_release -c | cut -f 2)
+setup=$(dirname "$0")
+cfg="$HOME/.config/dotfiles"
 
 echo "PATH = $PATH"
 [ ${PATH#*$prefix/bin} = $PATH ] && export PATH="$prefix/bin:$PATH"
@@ -67,7 +69,6 @@ export PERLBREW_ROOT="$prefix/perlbrew"
 inhome .config/git || mkdir -p "$HOME/.config/git"
 inhome .vim || mkdir "$HOME/.vim"
 if ! inhome .config/dotfiles && ! inhome .localenv; then
-	cfg="$HOME/.config/dotfiles"
 	url="https://github.com/vbwx/dotfiles.git"
 	git clone $url "$cfg" || warn "Can't clone $url"
 
@@ -84,6 +85,7 @@ if ! inhome .config/dotfiles && ! inhome .localenv; then
 		inhome .scss-lint.yml     || ln -s "$cfg/scss-lint.yml" "$HOME/.scss-lint.yml"
 		inhome .tern-project      || ln -s "$cfg/tern-project.json" "$HOME/.tern-project"
 		inhome .localenv          || ln -s "$cfg/localenv" "$HOME/.localenv"
+		inhome .inputrc           || ln -s "$cfg/inputrc" "$HOME/.inputrc"
 	fi
 fi
 
@@ -162,10 +164,8 @@ if ! inlists download.virtualbox.org; then
 	wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | apt-key add -
 	wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
 fi
-if ! inlists rabbitvcs; then
-	echo "deb http://ppa.launchpad.net/rabbitvcs/ppa/ubuntu trusty main" > /etc/apt/sources.list.d/rabbitvcs.list
-fi
 
+inlists rabbitvcs || add-apt-repository ppa:rabbitvcs/ppa
 inlists zeal-developers || add-apt-repository ppa:zeal-developers/ppa
 
 #}}}
@@ -174,7 +174,9 @@ inlists zeal-developers || add-apt-repository ppa:zeal-developers/ppa
 
 apt update
 
+exist ag || apt install silversearcher-ag
 exist clipit || apt install clipit
+exist dconf-editor || apt install dconf-editor
 exist dkms || apt install dkms
 exist dropbox || apt install dropbox
 exist git || apt install git
@@ -365,6 +367,14 @@ fi
 echo "Shell = $SHELL"
 [ $SHELL = "/bin/zsh" ] || chsh -s /bin/zsh
 touch "$HOME/.hushlogin"
+
+#}}}
+
+#{{{ Patches
+
+# Map [Shift]+[Backspace] to [Delete]
+file=/usr/share/X11/xkb/symbols/pc
+grep -i "backspace, backspace" $file && patch $file "$setup/debian/pc.diff"
 
 #}}}
 
