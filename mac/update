@@ -82,7 +82,7 @@ for t in $*; do
 		vim-plug)
 			vim +PlugUpgrade +PlugUpdate +qall
 			;;
-		help)
+		help|--help)
 			help
 			;;
 		*)
