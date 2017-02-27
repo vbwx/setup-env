@@ -8,6 +8,30 @@ targets=(
 	spotlight
 )
 
+function help {
+	cat << END
+NAME
+	rebuild
+
+SYNOPSIS
+	rebuild target_name ...
+	rebuild help
+
+DESCRIPTION
+	This utility provides a simple interface to rebuild caches and databases.
+
+TARGETS
+END
+	listtargets
+	exit $*
+}
+
+function listtargets {
+	echo "\tall"
+	for t in ${targets[*]}
+		echo "\t$t"
+}
+
 if [ $# -eq 0 ]; then
 	>&2 echo "What do you want to rebuild?"
 	listtargets
@@ -31,38 +55,16 @@ for t in $*; do
 		spotlight)
 			sudo mdutil -E /
 			;;
-		help)
+		help|--help)
 			help
 			;;
 		*)
-			alt=($(which rebuild))
-			if [ ${#alt} -gt 1 ]; then
-				${alt[2]} "$@"
+			alt=($(which -a rebuild))
+			if [ ${#alt[@]} -gt 1 ]; then
+				${alt[1]} "$@"
 			else
-				>&2 echo "Unknown target: $t"
+				>&2 echo -e "Unknown target: $t\n"
 				help 1
 			fi
 	esac
 done
-
-function help {
-	echo "NAME"
-	echo "\trebuild"
-	echo
-	echo "SYNOPSIS"
-	echo "\trebuild target_name ..."
-	echo "\trebuild help"
-	echo
-	echo "DESCRIPTION"
-	echo "This utility provides a simple interface to rebuild caches and databases."
-	echo
-	echo "TARGETS"
-	listtargets
-	exit $*
-}
-
-function listtargets {
-	echo "\tall"
-	for t in ${targets[*]}
-		echo "\t$t"
-}
