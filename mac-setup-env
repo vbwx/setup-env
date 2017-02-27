@@ -91,7 +91,6 @@ if ! inhome .config/dotfiles && ! inhome .localenv; then
 		inhome .scss-lint.yml     || ln -s "$cfg/scss-lint.yml" "$HOME/.scss-lint.yml"
 		inhome .tern-project      || ln -s "$cfg/tern-project.json" "$HOME/.tern-project"
 		inhome .localenv          || ln -s "$cfg/localenv" "$HOME/.localenv"
-		inhome .inputrc           || ln -s "$cfg/inputrc" "$HOME/.inputrc"
 	fi
 fi
 
