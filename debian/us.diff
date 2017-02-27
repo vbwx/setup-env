@@ -1,4 +1,0 @@
-104c104
-<     key <BKSP> {	[ BackSpace	]	};
----
->     key <BKSP> {	[ BackSpace, Delete	]	};
