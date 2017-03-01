@@ -182,6 +182,7 @@ exist dropbox || apt install dropbox
 exist git || apt install git
 exist gvim || apt install vim-gtk
 exist java || apt install default-jre
+exist mkfs.hfs || apt install hfsprogs
 exist rename || apt install rename
 inshare nautilus-python/extensions/RabbitVCS.py || apt install rabbitvcs-nautilus
 exist slack || apt install slack
