@@ -175,23 +175,24 @@ inlists zeal-developers || add-apt-repository ppa:zeal-developers/ppa
 
 apt update
 
-exist ag || apt install silversearcher-ag
-exist clipit || apt install clipit
+exist ag           || apt install silversearcher-ag
+exist clipit       || apt install clipit
 exist dconf-editor || apt install dconf-editor
-exist dkms || apt install dkms
-exist dropbox || apt install dropbox
-exist git || apt install git
-exist gvim || apt install vim-gtk
-exist java || apt install default-jre
-exist mkfs.hfs || apt install hfsprogs
-exist mount.exfat || apt install exfat-fuse exfat-utils
-exist rename || apt install rename
-inshare nautilus-python/extensions/RabbitVCS.py || apt install rabbitvcs-nautilus
-exist slack || apt install slack
-exist svn || apt install subversion
-exist tree || apt install tree
-exist virtualbox || apt install virtualbox-5.1
-exist zeal || apt install zeal
+exist dkms         || apt install dkms
+exist dropbox      || apt install dropbox
+exist git          || apt install git
+exist gvim         || apt install vim-gtk
+exist java         || apt install default-jre
+exist mkfs.hfs     || apt install hfsprogs
+exist mount.exfat  || apt install exfat-fuse exfat-utils
+exist rename       || apt install rename
+exist rabbitvcs    || apt install rabbitvcs-nautilus rabbitvcs-cli
+exist slack        || apt install slack
+exist svn          || apt install subversion
+# exist tex        || apt install texlive-full
+exist tree         || apt install tree
+exist virtualbox   || apt install virtualbox-5.1
+exist zeal         || apt install zeal
 
 if ! exist google-chrome; then
 	intmp google-chrome.deb || \

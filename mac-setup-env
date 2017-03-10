@@ -38,11 +38,11 @@ tapped() {
 }
 
 inlibs() {
-	test -e "/Library/$1" || test -e "$HOME/Library/$1"
+	test -e "/Library/$1".* -o -e "$HOME/Library/$1".*
 }
 
 inapps() {
-	test -d "/Applications/$1.app" || test -d "$HOME/Applications/$1.app"
+	test -d "/Applications/$1.app" -o -d "$HOME/Applications/$1.app"
 }
 
 inhome() {
@@ -156,35 +156,35 @@ exist xz               || brew install xz
 
 #{{{ Casks
 
-inapps "AppCleaner"                          || brew cask install appcleaner
-inapps "Dropbox"                             || brew cask install dropbox
-inapps "Firefox"                             || brew cask install firefox
-inapps "GitHub Desktop"                      || brew cask install github-desktop
-inapps "Google Chrome"                       || brew cask install google-chrome
-inapps "HandBrake"                           || brew cask install handbrake
-inapps "MacVim"                              || brew cask install macvim
-inapps "MAMP/MAMP"                           || brew cask install mamp
-inapps "OpenOffice"                          || brew cask install openoffice
-inapps "Opera"                               || brew cask install opera
-inapps "Platypus"                            || brew cask install platypus
-inapps "Skim"                                || brew cask install skim
-inapps "Skype"                               || brew cask install skype
-inapps "Slack"                               || brew cask install slack
-inapps "Suspicious Package"                  || brew cask install suspicious-package
-inapps "TeamViewer"                          || brew cask install teamviewer
-inapps "Things"                              || brew cask install things
-inapps "Transmission"                        || brew cask install transmission
-inapps "Transmit"                            || brew cask install transmit
-inapps "VirtualBox"                          || brew cask install virtualbox
-inapps "VLC"                                 || brew cask install vlc
-inlibs "TeX"                                 || brew cask install mactex
-inlibs "PreferencePanes/JavaControlPanel.prefPane" || brew cask install java
-inlibs "QuickLook/BetterZipQL.qlgenerator"   || brew cask install betterzipql
-inlibs "QuickLook/QLColorCode.qlgenerator"   || brew cask install qlcolorcode
-inlibs "QuickLook/QLMarkdown.qlgenerator"    || brew cask install qlmarkdown
-inlibs "QuickLook/QuickLookCSV.qlgenerator"  || brew cask install quicklook-csv
-inlibs "QuickLook/QuickLookJSON.qlgenerator" || brew cask install quicklook-json
-inlibs "QuickLook/WebP.qlgenerator"          || brew cask install webpquicklook
+inapps "AppCleaner"                       || brew cask install appcleaner
+inapps "Dropbox"                          || brew cask install dropbox
+inapps "Firefox"                          || brew cask install firefox
+inapps "GitHub Desktop"                   || brew cask install github-desktop
+inapps "Google Chrome"                    || brew cask install google-chrome
+inapps "HandBrake"                        || brew cask install handbrake
+inapps "MacVim"                           || brew cask install macvim
+inapps "MAMP/MAMP"                        || brew cask install mamp
+inapps "OpenOffice"                       || brew cask install openoffice
+inapps "Opera"                            || brew cask install opera
+inapps "Platypus"                         || brew cask install platypus
+inapps "Skim"                             || brew cask install skim
+inapps "Skype"                            || brew cask install skype
+inapps "Slack"                            || brew cask install slack
+inapps "Suspicious Package"               || brew cask install suspicious-package
+inapps "TeamViewer"                       || brew cask install teamviewer
+inapps "Things"                           || brew cask install things
+inapps "Transmission"                     || brew cask install transmission
+inapps "Transmit"                         || brew cask install transmit
+inapps "VirtualBox"                       || brew cask install virtualbox
+inapps "VLC"                              || brew cask install vlc
+inlibs "TeX/Root/texmf"                   || brew cask install mactex
+inlibs "PreferencePanes/JavaControlPanel" || brew cask install java
+inlibs "QuickLook/BetterZipQL"            || brew cask install betterzipql
+inlibs "QuickLook/QLColorCode"            || brew cask install qlcolorcode
+inlibs "QuickLook/QLMarkdown"             || brew cask install qlmarkdown
+inlibs "QuickLook/QuickLookCSV"           || brew cask install quicklook-csv
+inlibs "QuickLook/QuickLookJSON"          || brew cask install quicklook-json
+inlibs "QuickLook/WebP"                   || brew cask install webpquicklook
 
 #}}}
 #}}}
