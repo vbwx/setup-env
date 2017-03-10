@@ -51,7 +51,7 @@ inlists() {
 #{{{ Environment variables
 
 dist=$(lsb_release -c | cut -f 2)
-setup=$(dirname "$0")
+setup="$(dirname "$0")/debian"
 cfg="$HOME/.config/dotfiles"
 
 echo "PATH = $PATH"
@@ -377,7 +377,7 @@ touch "$HOME/.hushlogin"
 
 # Map [Shift]+[Backspace] to [Delete]
 file=/usr/share/X11/xkb/symbols/pc
-grep -i "backspace, backspace" $file && patch $file "$setup/debian/pc.diff"
+grep -i "backspace, backspace" $file && patch $file "$setup/pc.diff"
 
 gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us+mac'), ('xkb', 'de')]"
 gsettings set org.gnome.desktop.input-sources xkb-options "['lv3:ralt_switch', 'ctrl:swap_lwin_lctl', 'ctrl:swap_rwin_rctl']"

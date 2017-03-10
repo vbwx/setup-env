@@ -57,7 +57,7 @@ intmp() {
 
 #{{{ Environment variables
 
-setup=$(dirname "$0")
+setup="$(dirname "$0")/mac"
 cfg="$HOME/.config/dotfiles"
 
 echo "PATH = $PATH"
