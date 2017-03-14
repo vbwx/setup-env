@@ -53,6 +53,14 @@ intmp() {
 	test -f "$TMPDIR/$1"
 }
 
+install() {
+	brew install $@
+}
+
+installc() {
+	brew cask install $@
+}
+
 #}}}
 
 #{{{ Environment variables
@@ -118,73 +126,73 @@ brew update
 
 #{{{ Packages
 
-exist ag               || brew install the_silver_searcher
-exist automake         || brew install automake
-poured bash-completion || brew install bash-completion
-exist cmake            || brew install cmake
-poured coreutils       || brew install coreutils
-exist cowsay           || brew install cowsay
-exist cscope           || brew install cscope
-islocal ctags          || brew install ctags
-exist fdupes           || brew install fdupes
-exist ffmpeg           || brew install ffmpeg
-exist fortune          || brew install fortune
-exist fzf              || brew install fzf
-islocal git            || brew install git
-exist git-flow         || brew install git-flow
-islocal gzip           || brew install homebrew/dupes/gzip
-islocal less           || brew install homebrew/dupes/less
-poured libtool         || brew install libtool
-poured libvo-aacenc    || brew install libvo-aacenc
-poured libyaml         || brew install libyaml
-exist lua              || brew install lua
-poured msgpack         || brew install msgpack
-islocal php            || brew install homebrew/php/php70
-exist php-cs-fixer     || brew install homebrew/php/php-cs-fixer
-exist pyenv            || brew install pyenv
-exist rbenv            || brew install rbenv
-poured readline        || brew install readline
-exist rename           || brew install rename
-islocal rsync          || brew install homebrew/dupes/rsync
-islocal svn            || brew install subversion
-exist tig              || brew install tig
-exist tree             || brew install tree
-exist wdiff            || brew install wdiff
-exist xz               || brew install xz
+exist ag               || install the_silver_searcher
+exist automake         || install automake
+poured bash-completion || install bash-completion
+exist cmake            || install cmake
+poured coreutils       || install coreutils
+exist cowsay           || install cowsay
+exist cscope           || install cscope
+islocal ctags          || install ctags
+exist fdupes           || install fdupes
+exist ffmpeg           || install ffmpeg
+exist fortune          || install fortune
+exist fzf              || install fzf
+islocal git            || install git
+exist git-flow         || install git-flow
+islocal gzip           || install homebrew/dupes/gzip
+islocal less           || install homebrew/dupes/less
+poured libtool         || install libtool
+poured libvo-aacenc    || install libvo-aacenc
+poured libyaml         || install libyaml
+exist lua              || install lua
+poured msgpack         || install msgpack
+islocal php            || install homebrew/php/php70
+exist php-cs-fixer     || install homebrew/php/php-cs-fixer
+exist pyenv            || install pyenv
+exist rbenv            || install rbenv
+poured readline        || install readline
+exist rename           || install rename
+islocal rsync          || install homebrew/dupes/rsync
+islocal svn            || install subversion
+exist tig              || install tig
+exist tree             || install tree
+exist wdiff            || install wdiff
+exist xz               || install xz
 
 #}}}
 
 #{{{ Casks
 
-inapps "AppCleaner"                       || brew cask install appcleaner
-inapps "Dropbox"                          || brew cask install dropbox
-inapps "Firefox"                          || brew cask install firefox
-inapps "GitHub Desktop"                   || brew cask install github-desktop
-inapps "Google Chrome"                    || brew cask install google-chrome
-inapps "HandBrake"                        || brew cask install handbrake
-inapps "MacVim"                           || brew cask install macvim
-inapps "MAMP/MAMP"                        || brew cask install mamp
-inapps "OpenOffice"                       || brew cask install openoffice
-inapps "Opera"                            || brew cask install opera
-inapps "Platypus"                         || brew cask install platypus
-inapps "Skim"                             || brew cask install skim
-inapps "Skype"                            || brew cask install skype
-inapps "Slack"                            || brew cask install slack
-inapps "Suspicious Package"               || brew cask install suspicious-package
-inapps "TeamViewer"                       || brew cask install teamviewer
-inapps "Things"                           || brew cask install things
-inapps "Transmission"                     || brew cask install transmission
-inapps "Transmit"                         || brew cask install transmit
-inapps "VirtualBox"                       || brew cask install virtualbox
-inapps "VLC"                              || brew cask install vlc
-inlibs "TeX/Root/texmf"                   || brew cask install mactex
-inlibs "PreferencePanes/JavaControlPanel" || brew cask install java
-inlibs "QuickLook/BetterZipQL"            || brew cask install betterzipql
-inlibs "QuickLook/QLColorCode"            || brew cask install qlcolorcode
-inlibs "QuickLook/QLMarkdown"             || brew cask install qlmarkdown
-inlibs "QuickLook/QuickLookCSV"           || brew cask install quicklook-csv
-inlibs "QuickLook/QuickLookJSON"          || brew cask install quicklook-json
-inlibs "QuickLook/WebP"                   || brew cask install webpquicklook
+inapps "AppCleaner"                       || installc appcleaner
+inapps "Dropbox"                          || installc dropbox
+inapps "Firefox"                          || installc firefox
+inapps "GitHub Desktop"                   || installc github-desktop
+inapps "Google Chrome"                    || installc google-chrome
+inapps "HandBrake"                        || installc handbrake
+inapps "MacVim"                           || installc macvim
+inapps "MAMP/MAMP"                        || installc mamp
+inapps "OpenOffice"                       || installc openoffice
+inapps "Opera"                            || installc opera
+inapps "Platypus"                         || installc platypus
+inapps "Skim"                             || installc skim
+inapps "Skype"                            || installc skype
+inapps "Slack"                            || installc slack
+inapps "Suspicious Package"               || installc suspicious-package
+inapps "TeamViewer"                       || installc teamviewer
+inapps "Things"                           || installc things
+inapps "Transmission"                     || installc transmission
+inapps "Transmit"                         || installc transmit
+inapps "VirtualBox"                       || installc virtualbox
+inapps "VLC"                              || installc vlc
+inlibs "TeX/Root/texmf"                   || installc mactex
+inlibs "PreferencePanes/JavaControlPanel" || installc java
+inlibs "QuickLook/BetterZipQL"            || installc betterzipql
+inlibs "QuickLook/QLColorCode"            || installc qlcolorcode
+inlibs "QuickLook/QLMarkdown"             || installc qlmarkdown
+inlibs "QuickLook/QuickLookCSV"           || installc quicklook-csv
+inlibs "QuickLook/QuickLookJSON"          || installc quicklook-json
+inlibs "QuickLook/WebP"                   || installc webpquicklook
 
 #}}}
 #}}}
@@ -272,7 +280,7 @@ exist perlbrew || diecmd perlbrew
 source "$PERLBREW_ROOT/etc/bashrc"
 
 if ! islocal perl; then
-	perlbrew install -n stable || die "Can't install Perl"
+	perlinstall -n stable || die "Can't install Perl"
 	ver=$(perlbrew list | perl -ne '/perl-[\d.]+/; print $&; $& and exit;')
 	[ $ver ] || die "Can't find out installed Perl version"
 	perlbrew alias create perl-$ver default && perlbrew switch default
