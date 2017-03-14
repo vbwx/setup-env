@@ -184,6 +184,7 @@ exist clipit       || install clipit
 exist dconf-editor || install dconf-editor
 exist dkms         || install dkms
 exist dropbox      || install dropbox
+exist gimp         || install gimp
 exist git          || install git
 exist gvim         || install vim-gtk
 exist java         || install default-jre
