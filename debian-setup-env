@@ -46,6 +46,10 @@ inlists() {
 	grep -q "$1" /etc/apt/sources.list /etc/apt/sources.list.d/*
 }
 
+install() {
+	apt-get install -y $@
+}
+
 #}}}
 
 #{{{ Environment variables
@@ -156,7 +160,7 @@ inapps "VLC"                                 || brew cask install vlc
 #{{{ Apt
 #{{{ Repositories
 
-exist apt || diecmd apt-get
+exist apt-get || diecmd apt
 
 if ! inlists download.virtualbox.org; then
 	echo "deb http://download.virtualbox.org/virtualbox/debian $dist contrib" \
@@ -173,26 +177,26 @@ inlists zeal-developers || add-apt-repository ppa:zeal-developers/ppa
 
 #{{{ Packages
 
-apt update
+apt-get update
 
-exist ag           || apt install silversearcher-ag
-exist clipit       || apt install clipit
-exist dconf-editor || apt install dconf-editor
-exist dkms         || apt install dkms
-exist dropbox      || apt install dropbox
-exist git          || apt install git
-exist gvim         || apt install vim-gtk
-exist java         || apt install default-jre
-exist mkfs.hfs     || apt install hfsprogs
-exist mount.exfat  || apt install exfat-fuse exfat-utils
-exist rename       || apt install rename
-exist rabbitvcs    || apt install rabbitvcs-nautilus rabbitvcs-cli
-exist slack        || apt install slack
-exist svn          || apt install subversion
-# exist tex        || apt install texlive-full
-exist tree         || apt install tree
-exist virtualbox   || apt install virtualbox-5.1
-exist zeal         || apt install zeal
+exist ag           || install silversearcher-ag
+exist clipit       || install clipit
+exist dconf-editor || install dconf-editor
+exist dkms         || install dkms
+exist dropbox      || install dropbox
+exist git          || install git
+exist gvim         || install vim-gtk
+exist java         || install default-jre
+exist mkfs.hfs     || install hfsprogs
+exist mount.exfat  || install exfat-fuse exfat-utils
+exist rename       || install rename
+exist rabbitvcs    || install rabbitvcs-nautilus rabbitvcs-cli
+exist slack        || install slack
+exist svn          || install subversion
+# exist tex        || install texlive-full
+exist tree         || install tree
+exist virtualbox   || install virtualbox-5.1
+exist zeal         || install zeal
 
 if ! exist google-chrome; then
 	intmp google-chrome.deb || \
@@ -200,7 +204,7 @@ if ! exist google-chrome; then
 	dpkg -i /tmp/google-chrome.deb && rm -f /tmp/google-chrome.deb
 fi
 
-apt install -f
+install -f
 
 #}}}
 #}}}
