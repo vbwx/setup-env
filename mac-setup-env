@@ -185,7 +185,7 @@ inapps "Transmission"                     || installc transmission
 inapps "Transmit"                         || installc transmit
 inapps "VirtualBox"                       || installc virtualbox
 inapps "VLC"                              || installc vlc
-inlibs "TeX/Root/texmf"                   || installc mactex
+inlibs "TeX/Root/texmf.cnf"               || installc mactex
 inlibs "PreferencePanes/JavaControlPanel" || installc java
 inlibs "QuickLook/BetterZipQL"            || installc betterzipql
 inlibs "QuickLook/QLColorCode"            || installc qlcolorcode
