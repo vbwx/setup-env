@@ -240,7 +240,6 @@ fi
 #{{{ Packages
 
 exist npm                || diecmd npm
-exist bower              || npm install -g bower
 exist coffee             || npm install -g coffee-script
 exist coffeelint         || npm install -g coffeelint
 exist commitizen         || npm install -g commitizen
