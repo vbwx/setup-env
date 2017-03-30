@@ -233,7 +233,6 @@ exist nvm || diecmd nvm
 
 if ! islocal node; then
 	nvm install node || die "Can't install Node"
-	nvm use node && nvm alias default node
 fi
 [ -e $prefix/node ] || ln -s "$NVM_DIR/versions/node/$(nvm current)" $prefix/node || warn "Can't symlink $prefix/node"
 
