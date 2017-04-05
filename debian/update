@@ -50,10 +50,10 @@ for t in $*; do
 			$0 ${targets[*]}
 			;;
 		apt)
-			apt update
-			apt dist-upgrade
-			apt autoremove
-			apt autoclean
+			apt-get update
+			apt-get -f -y dist-upgrade
+			apt-get autoremove
+			apt-get autoclean
 			;;
 		prezto)
 			cd "${ZDOTDIR:-$HOME}/.zprezto"

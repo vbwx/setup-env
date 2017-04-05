@@ -47,7 +47,7 @@ inlists() {
 }
 
 install() {
-	apt-get install -y $@
+	apt-get -y install $@
 }
 
 #}}}
