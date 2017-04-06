@@ -180,6 +180,8 @@ inlists zeal-developers || add-apt-repository ppa:zeal-developers/ppa
 apt-get update
 
 exist ag           || install silversearcher-ag
+exist autoconf     || install autoconf
+exist automake     || install automake
 exist clipit       || install clipit
 exist dconf-editor || install dconf-editor
 exist dkms         || install dkms
