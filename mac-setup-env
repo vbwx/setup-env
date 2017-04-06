@@ -142,7 +142,7 @@ islocal git            || install git
 exist git-flow         || install git-flow
 islocal gzip           || install homebrew/dupes/gzip
 islocal less           || install homebrew/dupes/less
-poured libtool         || install libtool
+exist glibtoolize      || install libtool
 poured libvo-aacenc    || install libvo-aacenc
 poured libyaml         || install libyaml
 exist lua              || install lua

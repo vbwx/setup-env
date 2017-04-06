@@ -118,7 +118,6 @@ exist lua              || brew install lua
 islocal rsync          || brew install homebrew/dupes/rsync
 exist php-cs-fixer     || brew install homebrew/php/php-cs-fixer
 islocal php            || brew install homebrew/php/php70
-poured libtool         || brew install libtool
 poured libvo-aacenc    || brew install libvo-aacenc
 poured libyaml         || brew install libyaml
 poured msgpack         || brew install msgpack
@@ -190,6 +189,7 @@ exist gimp         || install gimp
 exist git          || install git
 exist gvim         || install vim-gtk
 exist java         || install default-jre
+exist libtoolize   || install libtool
 exist mkfs.hfs     || install hfsprogs
 exist mount.exfat  || install exfat-fuse exfat-utils
 exist rename       || install rename
