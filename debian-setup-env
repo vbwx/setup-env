@@ -382,11 +382,22 @@ touch "$HOME/.hushlogin"
 #{{{ Keyboard configuration
 
 # Map [Shift]+[Backspace] to [Delete]
-file=/usr/share/X11/xkb/symbols/pc
-grep -i "backspace, backspace" $file && patch $file "$setup/pc.diff"
+regex='backspace,[[:space:]]*backspace'
+replace='BackSpace, Delete'
+file="/usr/share/X11/xkb/symbols/pc"
+sed -i -e "s/$regex/$replace/ig" $file
 
 gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us+mac'), ('xkb', 'de')]"
 gsettings set org.gnome.desktop.input-sources xkb-options "['lv3:ralt_switch', 'ctrl:swap_lwin_lctl', 'ctrl:swap_rwin_rctl', 'terminate:ctrl_alt_bksp']"
+
+#}}}
+
+#{{{ Modify application shortcuts
+
+regex='google-chrome[[:alnum:]\-]*'
+replace='& --disable-gpu-driver-bug-workarounds --enable-native-gpu-memory-buffers'
+file="/usr/share/applications/google-chrome.desktop"
+sed -i -re "s/$regex/$replace/g" $file
 
 #}}}
 
