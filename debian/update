@@ -77,7 +77,8 @@ for t in $*; do
 			pip freeze --local | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
 			;;
 		gem)
-			gem update
+			gem update -N
+			gem cleanup
 			;;
 		vim-plug)
 			vim +PlugUpgrade +PlugUpdate +qall
