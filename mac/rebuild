@@ -9,33 +9,23 @@ targets=(
 )
 
 function help {
-	cat << END
-NAME
-	rebuild
+	echo "The rebuild utility provides a simple interface to rebuild caches and databases."
+	usage
+}
 
-SYNOPSIS
-	rebuild target_name ...
-	rebuild help
-
-DESCRIPTION
-	This utility provides a simple interface to rebuild caches and databases.
-
-TARGETS
-END
-	listtargets
+function usage {
+	echo -en "\nusage: rebuild (all"
+	for t in ${targets[*]}; do
+		echo -n " | $t"
+	done
+	echo ")"
+	echo "       rebuild help"
 	exit $*
 }
 
-function listtargets {
-	echo "\tall"
-	for t in ${targets[*]}
-		echo "\t$t"
-}
-
 if [ $# -eq 0 ]; then
-	>&2 echo "What do you want to rebuild?"
-	listtargets
-	exit 1
+	>&2 echo "rebuild: target missing"
+	usage 1
 fi
 
 for t in $*; do
@@ -63,8 +53,8 @@ for t in $*; do
 			if [ ${#alt[@]} -gt 1 ]; then
 				${alt[1]} "$@"
 			else
-				>&2 echo -e "Unknown target: $t\n"
-				help 1
+				>&2 echo "Unknown target: $t"
+				usage 1
 			fi
 	esac
 done

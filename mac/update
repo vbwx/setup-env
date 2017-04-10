@@ -14,34 +14,23 @@ targets=(
 )
 
 function help {
-	cat << END
-NAME
-	update
+	echo "The update utility provides a simple interface to perform updates of programs and packages."
+	usage
+}
 
-SYNOPSIS
-	update target_name ...
-	update help
-
-DESCRIPTION
-	This utility provides a simple interface to perform updates of programs and packages.
-
-TARGETS
-END
-	listtargets
+function usage {
+	echo -en "\nusage: update (all"
+	for t in ${targets[*]}; do
+		echo -n " | $t"
+	done
+	echo ")"
+	echo "       update help"
 	exit $*
 }
 
-function listtargets {
-	echo -e "\tall"
-	for t in ${targets[*]}; do
-		echo -e "\t$t"
-	done
-}
-
 if [ $# -eq 0 ]; then
-	>&2 echo "What do you want to update?"
-	listtargets
-	exit 1
+	>&2 echo "update: target missing"
+	usage 1
 fi
 
 for t in $*; do
@@ -91,8 +80,8 @@ for t in $*; do
 			if [ ${#alt[@]} -gt 1 ]; then
 				${alt[1]} "$@"
 			else
-				>&2 echo -e "Unknown target: $t\n"
-				help 1
+				>&2 echo "update: unknown target: $t"
+				usage 1
 			fi
 	esac
 done
