@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Exec=/home/bw/.local/bin/mouse-speed
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name[en_US]=Mouse Speed
+Name=Mouse Speed Settings
+Comment[en_US]=
+Comment=

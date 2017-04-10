@@ -188,11 +188,13 @@ exist dkms         || install dkms
 exist dropbox      || install dropbox
 exist gimp         || install gimp
 exist git          || install git
+exist gnome-tweak-tool || install gnome-tweak-tool
 exist gvim         || install vim-gtk
 exist java         || install default-jre
 exist libtoolize   || install libtool
 exist mkfs.hfs     || install hfsprogs
 exist mount.exfat  || install exfat-fuse exfat-utils
+exist nitrogen     || install nitrogen
 exist rename       || install rename
 exist rabbitvcs    || install rabbitvcs-nautilus rabbitvcs-cli
 exist slack        || install slack
@@ -390,6 +392,21 @@ sed -i -e "s/$regex/$replace/ig" $file
 
 gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us+mac'), ('xkb', 'de')]"
 gsettings set org.gnome.desktop.input-sources xkb-options "['lv3:ralt_switch', 'ctrl:swap_lwin_lctl', 'ctrl:swap_rwin_rctl', 'terminate:ctrl_alt_bksp']"
+
+#}}}
+
+#{{{ Startup applications
+
+if ! inhome .local/bin/mouse-speed; then
+	[ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin"
+	cp "$setup/mouse-speed" "$HOME/.local/bin"
+	cp "$setup/mouse-speed.desktop" "$HOME/.config/autostart"
+fi
+if ! inhome .config/autostart/nitrogen.desktop; then
+	exist nitrogen || diecmd nitrogen
+	cp "$setup/nitrogen.desktop" "$HOME/.config/autostart"
+	nitrogen &> /dev/null &
+fi
 
 #}}}
 
