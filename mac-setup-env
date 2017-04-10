@@ -126,6 +126,7 @@ brew update
 
 #{{{ Packages
 
+exist 7z               || install p7zip
 exist ag               || install the_silver_searcher
 exist automake         || install automake
 poured bash-completion || install bash-completion

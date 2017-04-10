@@ -178,6 +178,7 @@ inlists zeal-developers || add-apt-repository ppa:zeal-developers/ppa
 
 apt-get update
 
+exist 7z           || install p7zip
 exist ag           || install silversearcher-ag
 exist autoconf     || install autoconf
 exist automake     || install automake
