@@ -209,6 +209,13 @@ fi
 
 #}}}
 
+#{{{ base16 color schemes
+
+if ! grep -i harmonic16 "$HOME/Library/Preferences/com.apple.Terminal.plist"; then
+fi
+
+#}}}
+
 #{{{ Node.js
 
 if [ -f "$NVM_DIR/nvm.sh" ]; then
