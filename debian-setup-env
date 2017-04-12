@@ -39,7 +39,7 @@ inhome() {
 }
 
 intmp() {
-	test -f "$TMPDIR/$1"
+	test -e "$TMPDIR/$1"
 }
 
 inlists() {
@@ -48,6 +48,34 @@ inlists() {
 
 install() {
 	apt-get -y install $@
+}
+
+rundel() {
+	if [ -d "$1" ]; then
+		dir="$1"
+		shift
+		(
+			cd "$dir"
+			[ -f "$2" -o -f "$3" ] && "$@" && \
+				cd .. && rm -rf "$dir"
+		) || die "Can't install $(basename "$dir")"
+	else
+		[ -f "$2" ] && file="$2" || file="$3"
+		([ -f "$file" ] && "$@" && rm -f "$file") || \
+			die "Can't install $(basename "$file")"
+	fi
+}
+
+clone() {
+	[ -e "${@: -1}" ] || git clone "$@" || warn "Can't clone ${@: -2:1}"
+}
+
+download() {
+	if [ $# -eq 1 ]; then
+		curl -fsSL "$1" || warn "Can't download $1"
+	else
+		[ -e "$2" ] || curl --create-dirs -fsSLo "$2" "$1" || warn "Can't download $1"
+	fi
 }
 
 #}}}
@@ -73,8 +101,7 @@ export PERLBREW_ROOT="$prefix/perlbrew"
 inhome .config/git || mkdir -p "$HOME/.config/git"
 inhome .vim || mkdir "$HOME/.vim"
 if ! inhome .config/dotfiles && ! inhome .localenv; then
-	url="https://github.com/vbwx/dotfiles.git"
-	git clone $url "$cfg" || warn "Can't clone $url"
+	clone https://github.com/vbwx/dotfiles.git "$cfg"
 
 	if [ -d "$cfg" ]; then
 		inhome .bash_profile      || ln -s "$cfg/bash_profile" "$HOME/.bash_profile"
@@ -164,8 +191,8 @@ exist apt-get || diecmd apt
 if ! inlists download.virtualbox.org; then
 	echo "deb http://download.virtualbox.org/virtualbox/debian $dist contrib" \
 		>> /etc/apt/sources.list.d/oracle.list
-	wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | apt-key add -
-	wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
+	download https://www.virtualbox.org/download/oracle_vbox_2016.asc | apt-key add - || warn "Can't add public key oracle_vbox_2016.asc"
+	download https://www.virtualbox.org/download/oracle_vbox.asc | apt-key add - || warn "Can't add public key oracle_vbox.asc"
 fi
 
 inlists rabbitvcs || add-apt-repository ppa:rabbitvcs/ppa
@@ -205,9 +232,8 @@ exist virtualbox   || install virtualbox-5.1
 exist zeal         || install zeal
 
 if ! exist google-chrome; then
-	intmp google-chrome.deb || \
-		wget -O /tmp/google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-	dpkg -i /tmp/google-chrome.deb && rm -f /tmp/google-chrome.deb
+	download https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb "$TMPDIR/google-chrome.deb"
+	rundel dpkg -i "$TMPDIR/google-chrome.deb"
 fi
 
 install -f
@@ -215,26 +241,21 @@ install -f
 #}}}
 #}}}
 
-#{{{ Download shared files
+#{{{ Shared files
 
-if [ ! -d $prefix/share/unicode ]; then
-	url="http://www.unicode.org/Public/UNIDATA/UnicodeData.txt"
-	curl -fsSLo "$prefix/share/unicode/UnicodeData.txt" $url || warn "Can't download $url"
-fi
+download "http://www.unicode.org/Public/UNIDATA/UnicodeData.txt" "$prefix/share/unicode/UnicodeData.txt"
 
 #}}}
 
 #{{{ Node.js
 
-if [ -f "$NVM_DIR/nvm.sh" ]; then
-	source "$NVM_DIR/nvm.sh"
-else
-	git clone https://github.com/creationix/nvm.git $NVM_DIR && (
+if [ ! -f "$NVM_DIR/nvm.sh" ]; then
+	clone https://github.com/creationix/nvm.git $NVM_DIR && (
 		cd $NVM_DIR
-		git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin`
+		git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin` || die "Can't install nvm"
 	)
 fi
-exist nvm || diecmd nvm
+exist nvm || source "$NVM_DIR/nvm.sh" || diecmd nvm
 
 if ! islocal node; then
 	nvm install node || die "Can't install Node"
@@ -267,7 +288,7 @@ eval "$(rbenv init -)"
 
 if ! islocal ruby; then
 	ver=$(rbenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')
-	[ $ver ] || die "Can't fetch latest Ruby version"
+	[ "$ver" ] || die "Can't fetch latest Ruby version"
 	rbenv install $ver || die "Can't install Ruby"
 	rbenv global $ver
 fi
@@ -286,17 +307,16 @@ exist scss-lint || gem install -N scss_lint
 #{{{ Perl
 
 if ! exist perlbrew; then
-	url="https://install.perlbrew.pl"
-	curl -fLo "$TMPDIR/perlbrew.sh" $url || warn "Can't download $url"
-	intmp perlbrew.sh && bash "$TMPDIR/perlbrew.sh" || die "Can't install Perlbrew"
+	download https://install.perlbrew.pl "$TMPDIR/perlbrew.sh"
+	rundel bash "$TMPDIR/perlbrew.sh"
 fi
-exist perlbrew || diecmd perlbrew
-source "$PERLBREW_ROOT/etc/bashrc"
+exist perlbrew || source "$PERLBREW_ROOT/etc/bashrc" || diecmd perlbrew
+
 
 if ! islocal perl; then
 	perlbrew install -n stable || die "Can't install Perl"
 	ver=$(perlbrew list | perl -ne '/perl-[\d.]+/; print $&; $& and exit;')
-	[ $ver ] || die "Can't find out installed Perl version"
+	[ "$ver" ] || die "Can't find out installed Perl version"
 	perlbrew alias create perl-$ver default && perlbrew switch default
 fi
 
@@ -315,7 +335,7 @@ eval "$(pyenv init -)"
 
 if ! islocal python; then
 	ver=$(pyenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')
-	[ $ver ] || die "Can't fetch latest Python version"
+	[ "$ver" ] || die "Can't fetch latest Python version"
 	CFLAGS="-I$(xcrun --show-sdk-path)/usr/include" pyenv install $ver || die "Can't install Python"
 	pyenv global $ver
 fi
@@ -325,9 +345,8 @@ fi
 #{{{ PHP
 
 if ! exist composer; then
-	url="https://getcomposer.org/installer"
-	curl -fLo "$TMPDIR/composer.php" $url || warn "Can't download $url"
-	intmp composer.php && php "$TMPDIR/composer.php" --install-dir=$prefix/bin --filename=composer || die "Can't install Composer"
+	download "https://getcomposer.org/installer" "$TMPDIR/composer.php"
+	rundel php "$TMPDIR/composer.php" --install-dir=$prefix/bin --filename=composer
 fi
 
 #}}}
@@ -352,14 +371,9 @@ islocal gviman   || ln -s $prefix/bin/uvim $prefix/bin/gviman
 
 islocal vim || diecmd mvim
 
-if ! inhome .vim/spell/de.utf-8.spl; then
-	url="http://ftp.vim.org/pub/vim/runtime/spell/de.utf-8.spl"
-	curl -fsSLo --create-dirs "$HOME/.vim/spell/de.utf-8.spl"
-fi
-if ! inhome .vim/autoload/plug.vim; then
-	url="https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
-	curl -fsSLo --create-dirs "$HOME/.vim/autoload/plug.vim" $url || warn "Can't download $url"
-fi
+download http://ftp.vim.org/pub/vim/runtime/spell/de.utf-8.spl "$HOME/.vim/spell/de.utf-8.spl"
+download https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim "$HOME/.vim/autoload/plug.vim"
+
 if ! inhome .vim/plugged; then
 	vim -c PlugInstall -c q
 fi
@@ -368,17 +382,39 @@ fi
 
 #{{{ Prezto
 
-if [ ! -d "${ZDOTDIR:-$HOME}/.zprezto" ]; then
-	git clone --recursive https://github.com/vbwx/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
+clone --recursive https://github.com/vbwx/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
+if [ ! -L "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
 	setopt EXTENDED_GLOB
 	for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do
 		ln -s "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
 	done
 fi
 
-echo "Shell = $SHELL"
+echo "SHELL = $SHELL"
 [ $SHELL = "/bin/zsh" ] || chsh -s /bin/zsh
 touch "$HOME/.hushlogin"
+
+#}}}
+
+#{{{ base16
+
+if ! dconf dump /org/gnome/terminal/legacy/profiles:/ | grep -qi harmonic16; then
+	clone https://github.com/aaron-williamson/base16-gnome-terminal.git "$TMPDIR/base16-terminal"
+	rundel "$TMPDIR/base16-terminal" sh -c \
+		'for s in color-scripts/*-256.sh; do
+			sed -i -e "s/\"base 16 /\"/i" -e "s/ 256\"/\"/" $s
+			bash $s
+		done'
+fi
+
+#}}}
+
+#{{{ Powerline fonts
+
+if ! inhome .local/share/fonts/Hack-Regular.ttf; then
+	clone https://github.com/powerline/fonts.git "$TMPDIR/powerline-fonts"
+	rundel "$TMPDIR/powerline-fonts" bash install.sh
+fi
 
 #}}}
 
@@ -397,7 +433,7 @@ gsettings set org.gnome.desktop.input-sources xkb-options "['lv3:ralt_switch', '
 
 #{{{ Startup applications
 
-if ! inhome .local/bin/mouse-speed; then
+if ! inhome .config/autostart/mouse-speed.desktop; then
 	[ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin"
 	cp "$setup/mouse-speed" "$HOME/.local/bin"
 	cp "$setup/mouse-speed.desktop" "$HOME/.config/autostart"
@@ -413,7 +449,7 @@ fi
 #{{{ Modify application shortcuts
 
 regex='google-chrome[[:alnum:]\-]*'
-replace='& --disable-gpu-driver-bug-workarounds --enable-native-gpu-memory-buffers'
+replace='& --enable-native-gpu-memory-buffers'
 file="/usr/share/applications/google-chrome.desktop"
 sed -i -re "s/$regex/$replace/g" $file
 
