@@ -50,10 +50,6 @@ prefix=/usr/local
 		test -e "$HOME/$1"
 	}
 
-	intmp() {
-		test -e "$TMPDIR/$1"
-	}
-
 	install() {
 		brew install $@
 	}

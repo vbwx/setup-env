@@ -30,16 +30,12 @@ prefix=/usr/local
 		exist $1 && test "${bin#*$prefix/bin}" != "$bin"
 	}
 
-	inshare() {
-		test -e "/usr/share/$1" || test -e "$prefix/share/$1"
-	}
+#	inshare() {
+#		test -e "/usr/share/$1" || test -e "$prefix/share/$1"
+#	}
 
 	inhome() {
 		test -e "$HOME/$1"
-	}
-
-	intmp() {
-		test -e "$TMPDIR/$1"
 	}
 
 	inlists() {
