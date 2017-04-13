@@ -1,124 +1,126 @@
 #!/bin/zsh
-# Run with 'sudo zsh'
+# Run with 'sudo zsh debian-setup-env'
 
 # Change the install location if necessary:
 prefix=/usr/local
 
 #{{{ Functions
 
-die() {
-	>&2 echo "\n$*!"
-	exit 1
-}
+	die() {
+		>&2 echo "\n$*!"
+		exit 1
+	}
 
-diecmd() {
-	>&2 echo "\nCommand not found: $1"
-	>&2 echo "Open a new shell and run this script again to continue with the setup."
-	exit 127
-}
+	diecmd() {
+		>&2 echo "\nCommand not found: $1"
+		>&2 echo "Open a new shell and run this script again to continue with the setup."
+		exit 127
+	}
 
-warn() {
-	>&2 echo "\n$*!\n"
-}
+	warn() {
+		>&2 echo "\n$*!\n"
+	}
 
-exist() {
-	command -v $1 > /dev/null
-}
+	exist() {
+		command -v $1 > /dev/null
+	}
 
-islocal() {
-	bin=$(which $1)
-	exist $1 && test "${bin#*$prefix/bin}" != "$bin"
-}
+	islocal() {
+		bin=$(which $1)
+		exist $1 && test "${bin#*$prefix/bin}" != "$bin"
+	}
 
-inshare() {
-	test -e "/usr/share/$1" || test -e "$prefix/share/$1"
-}
+	inshare() {
+		test -e "/usr/share/$1" || test -e "$prefix/share/$1"
+	}
 
-inhome() {
-	test -e "$HOME/$1"
-}
+	inhome() {
+		test -e "$HOME/$1"
+	}
 
-intmp() {
-	test -e "$TMPDIR/$1"
-}
+	intmp() {
+		test -e "$TMPDIR/$1"
+	}
 
-inlists() {
-	grep -q "$1" /etc/apt/sources.list /etc/apt/sources.list.d/*
-}
+	inlists() {
+		grep -qi "$1" /etc/apt/sources.list /etc/apt/sources.list.d/*
+	}
 
-install() {
-	apt-get -y install $@
-}
+	install() {
+		apt-get -y install $@
+	}
 
-rundel() {
-	if [ -d "$1" ]; then
-		dir="$1"
-		shift
-		(
-			cd "$dir"
-			[ -f "$2" -o -f "$3" ] && "$@" && \
-				cd .. && rm -rf "$dir"
-		) || die "Can't install $(basename "$dir")"
-	else
-		[ -f "$2" ] && file="$2" || file="$3"
-		([ -f "$file" ] && "$@" && rm -f "$file") || \
-			die "Can't install $(basename "$file")"
-	fi
-}
+	rundel() {
+		if [ -d "$1" ]; then
+			dir="$1"
+			shift
+			(
+				cd "$dir"
+				[ -f "$2" -o -f "$3" ] && "$@" && \
+					cd .. && rm -rf "$dir"
+			) || die "Can't install $(basename "$dir")"
+		else
+			[ -f "$2" ] && file="$2" || file="$3"
+			([ -f "$file" ] && "$@" && rm -f "$file") || \
+				die "Can't install $(basename "$file")"
+		fi
+	}
 
-clone() {
-	[ -e "${@: -1}" ] || git clone "$@" || warn "Can't clone ${@: -2:1}"
-}
+	clone() {
+		[ -e "${@: -1}" ] || git clone "$@" || warn "Can't clone ${@: -2:1}"
+	}
 
-download() {
-	if [ $# -eq 1 ]; then
-		curl -fsSL "$1" || warn "Can't download $1"
-	else
-		[ -e "$2" ] || curl --create-dirs -fsSLo "$2" "$1" || warn "Can't download $1"
-	fi
-}
+	download() {
+		if [ $# -eq 1 ]; then
+			curl -fsSL "$1" || warn "Can't download $1"
+		else
+			[ -e "$2" ] || curl --create-dirs -fsSLo "$2" "$1" || warn "Can't download $1"
+		fi
+	}
 
 #}}}
 
 #{{{ Environment variables
 
-dist=$(lsb_release -c | cut -f 2)
-setup="$(dirname "$0")/debian"
-cfg="$HOME/.config/dotfiles"
+	dist=$(lsb_release -c | cut -f 2)
+	setup="$(dirname "$0")/debian"
+	cfg="$HOME/.config/dotfiles"
 
-echo "PATH = $PATH"
-[ ${PATH#*$prefix/bin} = $PATH ] && export PATH="$prefix/bin:$PATH"
-export TMPDIR=${TMPDIR:-/tmp}
-export RBENV_ROOT="$prefix/rbenv"
-export PYENV_ROOT="$prefix/pyenv"
-export NVM_DIR="$prefix/nvm"
-export PERLBREW_ROOT="$prefix/perlbrew"
+	echo "PATH = $PATH"
+	[ ${PATH#*$prefix/bin} = $PATH ] && export PATH="$prefix/bin:$PATH"
+	export TMPDIR=${TMPDIR:-/tmp}
+	export RBENV_ROOT="$prefix/rbenv"
+	export PYENV_ROOT="$prefix/pyenv"
+	export NVM_DIR="$prefix/nvm"
+	export PERLBREW_ROOT="$prefix/perlbrew"
 
 #}}}
 
 #{{{ Dotfiles
 
-inhome .config/git || mkdir -p "$HOME/.config/git"
-inhome .vim || mkdir "$HOME/.vim"
-if ! inhome .config/dotfiles && ! inhome .localenv; then
-	clone https://github.com/vbwx/dotfiles.git "$cfg"
+	echo ">> Dotfiles"
 
-	if [ -d "$cfg" ]; then
-		inhome .bash_profile      || ln -s "$cfg/bash_profile" "$HOME/.bash_profile"
-		inhome .bashrc            || ln -s "$cfg/bashrc" "$HOME/.bashrc"
-		inhome .coffeelint.json   || ln -s "$cfg/coffeelint.json" "$HOME/.coffeelint.json"
-		inhome .eslintrc.json     || ln -s "$cfg/eslintrc.json" "$HOME/.eslintrc.json"
-		inhome .config/git/config || ln -s "$cfg/gitconfig" "$HOME/.config/git/config"
-		inhome .config/git/ignore || ln -s "$cfg/gitignore" "$HOME/.config/git/ignore"
-		inhome .vim/vimrc         || ln -s "$cfg/vimrc" "$HOME/.vim/vimrc"
-		inhome .vim/gvimrc        || ln -s "$cfg/gvimrc" "$HOME/.vim/gvimrc"
-		inhome .profile           || ln -s "$cfg/profile" "$HOME/.profile"
-		inhome .scss-lint.yml     || ln -s "$cfg/scss-lint.yml" "$HOME/.scss-lint.yml"
-		inhome .tern-project      || ln -s "$cfg/tern-project.json" "$HOME/.tern-project"
-		inhome .localenv          || ln -s "$cfg/localenv" "$HOME/.localenv"
-		inhome .inputrc           || ln -s "$cfg/inputrc" "$HOME/.inputrc"
+	inhome .config/git || mkdir -p "$HOME/.config/git"
+	inhome .vim || mkdir "$HOME/.vim"
+	if ! inhome .config/dotfiles && ! inhome .localenv; then
+		clone https://github.com/vbwx/dotfiles.git "$cfg"
+
+		if [ -d "$cfg" ]; then
+			inhome .bash_profile      || ln -s "$cfg/bash_profile" "$HOME/.bash_profile"
+			inhome .bashrc            || ln -s "$cfg/bashrc" "$HOME/.bashrc"
+			inhome .coffeelint.json   || ln -s "$cfg/coffeelint.json" "$HOME/.coffeelint.json"
+			inhome .eslintrc.json     || ln -s "$cfg/eslintrc.json" "$HOME/.eslintrc.json"
+			inhome .config/git/config || ln -s "$cfg/gitconfig" "$HOME/.config/git/config"
+			inhome .config/git/ignore || ln -s "$cfg/gitignore" "$HOME/.config/git/ignore"
+			inhome .vim/vimrc         || ln -s "$cfg/vimrc" "$HOME/.vim/vimrc"
+			inhome .vim/gvimrc        || ln -s "$cfg/gvimrc" "$HOME/.vim/gvimrc"
+			inhome .profile           || ln -s "$cfg/profile" "$HOME/.profile"
+			inhome .scss-lint.yml     || ln -s "$cfg/scss-lint.yml" "$HOME/.scss-lint.yml"
+			inhome .tern-project      || ln -s "$cfg/tern-project.json" "$HOME/.tern-project"
+			inhome .localenv          || ln -s "$cfg/localenv" "$HOME/.localenv"
+			inhome .inputrc           || ln -s "$cfg/inputrc" "$HOME/.inputrc"
+		fi
 	fi
-fi
 
 #}}}
 
@@ -184,309 +186,352 @@ inapps "VLC"                                 || brew cask install vlc
 #}}}
 
 #{{{ Apt
-#{{{ Repositories
 
-exist apt-get || diecmd apt
+	echo ">> APT"
+	#{{{ Repositories
 
-if ! inlists download.virtualbox.org; then
-	echo "deb http://download.virtualbox.org/virtualbox/debian $dist contrib" \
-		>> /etc/apt/sources.list.d/oracle.list
-	download https://www.virtualbox.org/download/oracle_vbox_2016.asc | apt-key add - || warn "Can't add public key oracle_vbox_2016.asc"
-	download https://www.virtualbox.org/download/oracle_vbox.asc | apt-key add - || warn "Can't add public key oracle_vbox.asc"
-fi
+	echo ">> APT repositories"
 
-inlists rabbitvcs || add-apt-repository ppa:rabbitvcs/ppa
-inlists universe || add-apt-repository universe
-inlists zeal-developers || add-apt-repository ppa:zeal-developers/ppa
+	exist apt-get || diecmd apt
 
-#}}}
+	if ! inlists download.virtualbox.org; then
+		echo "deb http://download.virtualbox.org/virtualbox/debian $dist contrib" \
+			>> /etc/apt/sources.list.d/oracle.list
+		download https://www.virtualbox.org/download/oracle_vbox_2016.asc | apt-key add - || warn "Can't add public key oracle_vbox_2016.asc"
+		download https://www.virtualbox.org/download/oracle_vbox.asc | apt-key add - || warn "Can't add public key oracle_vbox.asc"
+	fi
 
-#{{{ Packages
+	inlists rabbitvcs || add-apt-repository ppa:rabbitvcs/ppa
+	inlists universe || add-apt-repository universe
+	inlists zeal-developers || add-apt-repository ppa:zeal-developers/ppa
 
-apt-get update
+	#}}}
 
-exist 7z           || install p7zip
-exist ag           || install silversearcher-ag
-exist autoconf     || install autoconf
-exist automake     || install automake
-exist clipit       || install clipit
-exist dconf-editor || install dconf-editor
-exist dkms         || install dkms
-exist dropbox      || install dropbox
-exist gimp         || install gimp
-exist git          || install git
-exist gnome-tweak-tool || install gnome-tweak-tool
-exist gvim         || install vim-gtk
-exist java         || install default-jre
-exist libtoolize   || install libtool
-exist mkfs.hfs     || install hfsprogs
-exist mount.exfat  || install exfat-fuse exfat-utils
-exist nitrogen     || install nitrogen
-exist rename       || install rename
-exist rabbitvcs    || install rabbitvcs-nautilus rabbitvcs-cli
-exist slack        || install slack
-exist svn          || install subversion
-# exist tex        || install texlive-full
-exist tree         || install tree
-exist virtualbox   || install virtualbox-5.1
-exist zeal         || install zeal
+	#{{{ Packages
 
-if ! exist google-chrome; then
-	download https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb "$TMPDIR/google-chrome.deb"
-	rundel dpkg -i "$TMPDIR/google-chrome.deb"
-fi
+	echo ">> APT packages"
 
-install -f
+	apt-get update
 
-#}}}
+	exist 7z           || install p7zip
+	exist ag           || install silversearcher-ag
+	exist autoconf     || install autoconf
+	exist automake     || install automake
+	exist clipit       || install clipit
+	exist dconf-editor || install dconf-editor
+	exist dkms         || install dkms
+	exist dropbox      || install dropbox
+	exist gimp         || install gimp
+	exist git          || install git
+	exist gnome-tweak-tool || install gnome-tweak-tool
+	exist gvim         || install vim-gtk
+	exist java         || install default-jre
+	exist libtoolize   || install libtool
+	exist mkfs.hfs     || install hfsprogs
+	exist mount.exfat  || install exfat-fuse exfat-utils
+	exist nitrogen     || install nitrogen
+	exist rename       || install rename
+	exist rabbitvcs    || install rabbitvcs-nautilus rabbitvcs-cli
+	exist slack        || install slack
+	exist svn          || install subversion
+	# exist tex        || install texlive-full
+	exist tree         || install tree
+	exist virtualbox   || install virtualbox-5.1
+	exist zeal         || install zeal
+
+	if ! exist google-chrome; then
+		download https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb "$TMPDIR/google-chrome.deb"
+		rundel dpkg -i "$TMPDIR/google-chrome.deb"
+	fi
+
+	install -f
+
+	#}}}
 #}}}
 
 #{{{ Shared files
 
-download "http://www.unicode.org/Public/UNIDATA/UnicodeData.txt" "$prefix/share/unicode/UnicodeData.txt"
+	echo ">> Shared files"
+
+	download "http://www.unicode.org/Public/UNIDATA/UnicodeData.txt" "$prefix/share/unicode/UnicodeData.txt"
 
 #}}}
 
 #{{{ Node.js
 
-if [ ! -f "$NVM_DIR/nvm.sh" ]; then
-	clone https://github.com/creationix/nvm.git $NVM_DIR && (
-		cd $NVM_DIR
-		git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin` || die "Can't install nvm"
-	)
-fi
-exist nvm || source "$NVM_DIR/nvm.sh" || diecmd nvm
+	echo ">> Node.js"
 
-if ! islocal node; then
-	nvm install node || die "Can't install Node"
-fi
-[ -e $prefix/node ] || ln -s "$NVM_DIR/versions/node/$(nvm current)" $prefix/node || warn "Can't symlink $prefix/node"
+	if [ ! -f "$NVM_DIR/nvm.sh" ]; then
+		clone https://github.com/creationix/nvm.git $NVM_DIR && (
+			cd $NVM_DIR
+			git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin` || die "Can't install nvm"
+		)
+	fi
+	exist nvm || source "$NVM_DIR/nvm.sh" || diecmd nvm
 
-#{{{ Packages
+	if ! islocal node; then
+		nvm install node || die "Can't install Node"
+	fi
+	[ -e $prefix/node ] || ln -s "$NVM_DIR/versions/node/$(nvm current)" $prefix/node || warn "Can't symlink $prefix/node"
 
-exist npm                || diecmd npm
-exist coffee             || npm install -g coffee-script
-exist coffeelint         || npm install -g coffeelint
-exist commitizen         || npm install -g commitizen
-exist eslint             || npm install -g eslint
-exist grunt              || npm install -g grunt-cli
-exist gulp               || npm install -g gulp
-exist instant-markdown-d || npm install -g instant-markdown-d
-exist js-beautify        || npm install -g js-beautify
-exist jsctags            || npm install -g jsctags
-exist marked             || npm install -g marked
-exist tsc                || npm install -g typescript
-exist yo                 || npm install -g yo
+	#{{{ Packages
 
-#}}}
+	echo ">> Node packages"
+
+	exist npm                || diecmd npm
+	exist coffee             || npm install -g coffee-script
+	exist coffeelint         || npm install -g coffeelint
+	exist commitizen         || npm install -g commitizen
+	exist eslint             || npm install -g eslint
+	exist grunt              || npm install -g grunt-cli
+	exist gulp               || npm install -g gulp
+	exist instant-markdown-d || npm install -g instant-markdown-d
+	exist js-beautify        || npm install -g js-beautify
+	exist jsctags            || npm install -g jsctags
+	exist marked             || npm install -g marked
+	exist tsc                || npm install -g typescript
+	exist yo                 || npm install -g yo
+
+	#}}}
 #}}}
 
 #{{{ Ruby
 
-exist rbenv || diecmd rbenv
-eval "$(rbenv init -)"
+	echo ">> Ruby"
 
-if ! islocal ruby; then
-	ver=$(rbenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')
-	[ "$ver" ] || die "Can't fetch latest Ruby version"
-	rbenv install $ver || die "Can't install Ruby"
-	rbenv global $ver
-fi
+	exist rbenv || diecmd rbenv
+	eval "$(rbenv init -)"
 
-#{{{ Gems
+	if ! islocal ruby; then
+		ver=$(rbenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')
+		[ "$ver" ] || die "Can't fetch latest Ruby version"
+		rbenv install $ver || die "Can't install Ruby"
+		rbenv global $ver
+	fi
 
-exist gem       || diecmd gem
-islocal gem     || die "rbenv doesn't seem to be active"
-exist compass   || gem install -N compass
-exist sass      || gem install -N sass sass-globbing
-exist scss-lint || gem install -N scss_lint
+	#{{{ Gems
 
-#}}}
+	echo ">> Ruby gems"
+
+	exist gem       || diecmd gem
+	islocal gem     || die "rbenv doesn't seem to be active"
+	exist compass   || gem install -N compass
+	exist sass      || gem install -N sass sass-globbing
+	exist scss-lint || gem install -N scss_lint
+
+	#}}}
 #}}}
 
 #{{{ Perl
 
-if ! exist perlbrew; then
-	download https://install.perlbrew.pl "$TMPDIR/perlbrew.sh"
-	rundel bash "$TMPDIR/perlbrew.sh"
-fi
-exist perlbrew || source "$PERLBREW_ROOT/etc/bashrc" || diecmd perlbrew
+	echo ">> Perl"
+
+	if ! exist perlbrew; then
+		download https://install.perlbrew.pl "$TMPDIR/perlbrew.sh"
+		rundel bash "$TMPDIR/perlbrew.sh"
+	fi
+	exist perlbrew || source "$PERLBREW_ROOT/etc/bashrc" || diecmd perlbrew
 
 
-if ! islocal perl; then
-	perlbrew install -n stable || die "Can't install Perl"
-	ver=$(perlbrew list | perl -ne '/perl-[\d.]+/; print $&; $& and exit;')
-	[ "$ver" ] || die "Can't find out installed Perl version"
-	perlbrew alias create perl-$ver default && perlbrew switch default
-fi
+	if ! islocal perl; then
+		perlbrew install -n stable || die "Can't install Perl"
+		ver=$(perlbrew list | perl -ne '/perl-[\d.]+/; print $&; $& and exit;')
+		[ "$ver" ] || die "Can't find out installed Perl version"
+		perlbrew alias create perl-$ver default && perlbrew switch default
+	fi
 
-#{{{ Modules
+	#{{{ Modules
 
-exist cpan   || diecmd cpan
-islocal cpan || die "perlbrew doesn't seem to be active"
+	echo ">> Perl modules"
 
-#}}}
+	exist cpan   || diecmd cpan
+	islocal cpan || die "perlbrew doesn't seem to be active"
+
+	#}}}
 #}}}
 
 #{{{ Python
 
-exist pyenv || diecmd pyenv
-eval "$(pyenv init -)"
+	echo ">> Python"
 
-if ! islocal python; then
-	ver=$(pyenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')
-	[ "$ver" ] || die "Can't fetch latest Python version"
-	CFLAGS="-I$(xcrun --show-sdk-path)/usr/include" pyenv install $ver || die "Can't install Python"
-	pyenv global $ver
-fi
+	exist pyenv || diecmd pyenv
+	eval "$(pyenv init -)"
+
+	if ! islocal python; then
+		ver=$(pyenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')
+		[ "$ver" ] || die "Can't fetch latest Python version"
+		CFLAGS="-I$(xcrun --show-sdk-path)/usr/include" pyenv install $ver || die "Can't install Python"
+		pyenv global $ver
+	fi
 
 #}}}
 
 #{{{ PHP
 
-if ! exist composer; then
-	download "https://getcomposer.org/installer" "$TMPDIR/composer.php"
-	rundel php "$TMPDIR/composer.php" --install-dir=$prefix/bin --filename=composer
-fi
+	echo ">> PHP"
+
+	if ! exist composer; then
+		download "https://getcomposer.org/installer" "$TMPDIR/composer.php"
+		rundel php "$TMPDIR/composer.php" --install-dir=$prefix/bin --filename=composer
+	fi
 
 #}}}
 
 #{{{ Vim
 
-[ -f "uvim" ] || die "Can't find uvim script"
-link=$(readlink -n $prefix/bin/uvim)
-[ "${link#*mvim}" = "$link" ] && cp -f uvim $prefix/bin
+	echo ">> Vim"
 
-islocal vi       || ln -s $prefix/bin/uvim $prefix/bin/vi
-islocal vim      || ln -s $prefix/bin/uvim $prefix/bin/vim
-islocal gvim     || ln -s $prefix/bin/uvim $prefix/bin/gvim
-islocal rvim     || ln -s $prefix/bin/uvim $prefix/bin/rvim
-islocal rgvim    || ln -s $prefix/bin/uvim $prefix/bin/rgvim
-islocal view     || ln -s $prefix/bin/uvim $prefix/bin/view
-islocal gview    || ln -s $prefix/bin/uvim $prefix/bin/gview
-islocal vimdiff  || ln -s $prefix/bin/uvim $prefix/bin/vimdiff
-islocal gvimdiff || ln -s $prefix/bin/uvim $prefix/bin/gvimdiff
-islocal viman    || ln -s $prefix/bin/uvim $prefix/bin/viman
-islocal gviman   || ln -s $prefix/bin/uvim $prefix/bin/gviman
+	[ -f "uvim" ] || die "Can't find uvim script"
+	link=$(readlink -n $prefix/bin/uvim)
+	[ "${link#*mvim}" = "$link" ] && cp -f uvim $prefix/bin
 
-islocal vim || diecmd mvim
+	islocal vi       || ln -s $prefix/bin/uvim $prefix/bin/vi
+	islocal vim      || ln -s $prefix/bin/uvim $prefix/bin/vim
+	islocal gvim     || ln -s $prefix/bin/uvim $prefix/bin/gvim
+	islocal rvim     || ln -s $prefix/bin/uvim $prefix/bin/rvim
+	islocal rgvim    || ln -s $prefix/bin/uvim $prefix/bin/rgvim
+	islocal view     || ln -s $prefix/bin/uvim $prefix/bin/view
+	islocal gview    || ln -s $prefix/bin/uvim $prefix/bin/gview
+	islocal vimdiff  || ln -s $prefix/bin/uvim $prefix/bin/vimdiff
+	islocal gvimdiff || ln -s $prefix/bin/uvim $prefix/bin/gvimdiff
+	islocal viman    || ln -s $prefix/bin/uvim $prefix/bin/viman
+	islocal gviman   || ln -s $prefix/bin/uvim $prefix/bin/gviman
 
-download http://ftp.vim.org/pub/vim/runtime/spell/de.utf-8.spl "$HOME/.vim/spell/de.utf-8.spl"
-download https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim "$HOME/.vim/autoload/plug.vim"
+	islocal vim || diecmd mvim
 
-if ! inhome .vim/plugged; then
-	vim -c PlugInstall -c q
-fi
+	download http://ftp.vim.org/pub/vim/runtime/spell/de.utf-8.spl "$HOME/.vim/spell/de.utf-8.spl"
+	download https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim "$HOME/.vim/autoload/plug.vim"
+
+	if ! inhome .vim/plugged; then
+		vim -c PlugInstall -c q
+	fi
 
 #}}}
 
 #{{{ Prezto
 
-clone --recursive https://github.com/vbwx/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
-if [ ! -L "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
-	setopt EXTENDED_GLOB
-	for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do
-		ln -s "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
-	done
-fi
+	echo ">> Prezto"
 
-echo "SHELL = $SHELL"
-[ $SHELL = "/bin/zsh" ] || chsh -s /bin/zsh
-touch "$HOME/.hushlogin"
+	clone --recursive https://github.com/vbwx/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
+	if [ ! -L "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
+		setopt EXTENDED_GLOB
+		for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do
+			ln -s "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
+		done
+	fi
+
+	echo "SHELL = $SHELL"
+	[ $SHELL = "/bin/zsh" ] || chsh -s /bin/zsh
+	touch "$HOME/.hushlogin"
 
 #}}}
 
-#{{{ base16
+#{{{ Base16
 
-if ! dconf dump /org/gnome/terminal/legacy/profiles:/ | grep -qi harmonic16; then
-	clone https://github.com/aaron-williamson/base16-gnome-terminal.git "$TMPDIR/base16-terminal"
-	rundel "$TMPDIR/base16-terminal" sh -c \
-		'for s in color-scripts/*-256.sh; do
-			sed -i -e "s/\"base 16 /\"/i" -e "s/ 256\"/\"/" $s
-			bash $s
-		done'
-fi
+	echo ">> Base16"
+
+	if ! dconf dump /org/gnome/terminal/legacy/profiles:/ | grep -qi harmonic16; then
+		clone https://github.com/aaron-williamson/base16-gnome-terminal.git "$TMPDIR/base16-terminal"
+		rundel "$TMPDIR/base16-terminal" sh -c \
+			'for s in color-scripts/*-256.sh; do
+				sed -i -e "s/\"base 16 /\"/i" -e "s/ 256\"/\"/" $s
+				bash $s
+			done'
+	fi
 
 #}}}
 
 #{{{ Powerline fonts
 
-if ! inhome .local/share/fonts/Hack-Regular.ttf; then
-	clone https://github.com/powerline/fonts.git "$TMPDIR/powerline-fonts"
-	rundel "$TMPDIR/powerline-fonts" bash install.sh
-fi
+	echo ">> Powerline fonts"
+
+	if ! inhome .local/share/fonts/Hack-Regular.ttf; then
+		clone https://github.com/powerline/fonts.git "$TMPDIR/powerline-fonts"
+		rundel "$TMPDIR/powerline-fonts" bash install.sh
+	fi
 
 #}}}
 
-#{{{ Keyboard configuration
+#{{{ Distribution-specific setup
 
-# Map [Shift]+[Backspace] to [Delete]
-regex='backspace,[[:space:]]*backspace'
-replace='BackSpace, Delete'
-file="/usr/share/X11/xkb/symbols/pc"
-sed -i -e "s/$regex/$replace/ig" $file
+	#{{{ Keyboard configuration
 
-gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us+mac'), ('xkb', 'de')]"
-gsettings set org.gnome.desktop.input-sources xkb-options "['lv3:ralt_switch', 'ctrl:swap_lwin_lctl', 'ctrl:swap_rwin_rctl', 'terminate:ctrl_alt_bksp']"
+	echo ">> Keyboard configuration"
 
-#}}}
+	# Map [Shift]+[Backspace] to [Delete]
+	regex='backspace,[[:space:]]*backspace'
+	replace='BackSpace, Delete'
+	file="/usr/share/X11/xkb/symbols/pc"
+	sed -i -e "s/$regex/$replace/ig" $file
 
-#{{{ Startup applications
+	gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us+mac'), ('xkb', 'de')]"
+	gsettings set org.gnome.desktop.input-sources xkb-options "['lv3:ralt_switch', 'ctrl:swap_lwin_lctl', 'ctrl:swap_rwin_rctl', 'terminate:ctrl_alt_bksp']"
 
-if ! inhome .config/autostart/mouse-speed.desktop; then
-	[ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin"
-	cp "$setup/mouse-speed" "$HOME/.local/bin"
-	cp "$setup/mouse-speed.desktop" "$HOME/.config/autostart"
-fi
-if ! inhome .config/autostart/nitrogen.desktop; then
-	exist nitrogen || diecmd nitrogen
-	cp "$setup/nitrogen.desktop" "$HOME/.config/autostart"
-	nitrogen &> /dev/null &
-fi
+	#}}}
 
-#}}}
+	#{{{ Startup applications
 
-#{{{ Modify application shortcuts
+	echo ">> Startup applications"
 
-regex='google-chrome[[:alnum:]\-]*'
-replace='& --enable-native-gpu-memory-buffers'
-file="/usr/share/applications/google-chrome.desktop"
-sed -i -re "s/$regex/$replace/g" $file
+	if ! inhome .config/autostart/mouse-speed.desktop; then
+		[ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin"
+		cp "$setup/mouse-speed" "$HOME/.local/bin"
+		cp "$setup/mouse-speed.desktop" "$HOME/.config/autostart"
+	fi
+	if ! inhome .config/autostart/nitrogen.desktop; then
+		exist nitrogen || diecmd nitrogen
+		cp "$setup/nitrogen.desktop" "$HOME/.config/autostart"
+		nitrogen &> /dev/null &
+	fi
 
+	#}}}
+
+	#{{{ Modify application shortcuts
+
+	echo ">> Modify application shortcuts"
+
+	regex='google-chrome[[:alnum:]\-]*'
+	replace='& --enable-native-gpu-memory-buffers'
+	file="/usr/share/applications/google-chrome.desktop"
+	sed -i -re "s/$regex/$replace/g" $file
+
+	#}}}
 #}}}
 
 #{{{ Set PATH for all apps
 
-lpaths=(
-	$prefix/bin
-	$prefix/sbin
-	$prefix/node/bin
-	$prefix/perlbrew/perls/default/bin
-	$prefix/pyenv/shims
-	$prefix/rbenv/shims
-)
-guipath=$(launchctl getenv PATH)
-echo "GUI PATH = $guipath"
+	echo ">> Set PATH for all apps"
 
-if [ "${guipath#*$prefix/bin}" = "$guipath" ]; then
-	echo "New GUI PATH:"
-	echo $(IFS=: ; echo "${lpaths[*]}"):$guipath
-	sudo launchctl config user path "$(IFS=: ; echo "${lpaths[*]}"):$guipath"
-fi
-if [ $(head -n 1 /etc/paths) != "$prefix/bin" ]; then
-	(IFS=$'\n'; echo "${lpaths[*]}" > "$TMPDIR/paths")
-	cat /etc/paths >> "$TMPDIR/paths"
-	if [ $(head -n 1 "$TMPDIR/paths") = "$prefix/bin" ]; then
-		echo "New /etc/paths:"
-		cat "$TMPDIR/paths"
-		sudo mv -f "$TMPDIR/paths" /etc || die "Can't overwrite /etc/paths"
-	else
-		die "Can't create temporary paths file"
+	lpaths=(
+		$prefix/bin
+		$prefix/sbin
+		$prefix/node/bin
+		$prefix/perlbrew/perls/default/bin
+		$prefix/pyenv/shims
+		$prefix/rbenv/shims
+	)
+	guipath=$(launchctl getenv PATH)
+	echo "GUI PATH = $guipath"
+
+	if [ "${guipath#*$prefix/bin}" = "$guipath" ]; then
+		echo "New GUI PATH:"
+		echo $(IFS=: ; echo "${lpaths[*]}"):$guipath
+		sudo launchctl config user path "$(IFS=: ; echo "${lpaths[*]}"):$guipath"
 	fi
-fi
+	if [ $(head -n 1 /etc/paths) != "$prefix/bin" ]; then
+		(IFS=$'\n'; echo "${lpaths[*]}" > "$TMPDIR/paths")
+		cat /etc/paths >> "$TMPDIR/paths"
+		if [ $(head -n 1 "$TMPDIR/paths") = "$prefix/bin" ]; then
+			echo "New /etc/paths:"
+			cat "$TMPDIR/paths"
+			sudo mv -f "$TMPDIR/paths" /etc || die "Can't overwrite /etc/paths"
+		else
+			die "Can't create temporary paths file"
+		fi
+	fi
 
 #}}}
 
-echo "All done."
+echo ">> Done"
 
 # vim: fdm=marker:fdl=0:fdc=3
