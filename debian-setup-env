@@ -27,7 +27,7 @@ prefix=/usr/local
 
 	islocal() {
 		bin=$(which $1)
-		exist $1 && test "${bin#*$prefix/bin}" != "$bin"
+		exist $1 && test "${bin#*$prefix}" != "$bin"
 	}
 
 #	inshare() {

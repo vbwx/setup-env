@@ -27,7 +27,7 @@ prefix=/usr/local
 
 	islocal() {
 		bin=$(which $1)
-		exist $1 && test "${bin#*$prefix/bin}" != "$bin"
+		exist $1 && test "${bin#*$prefix}" != "$bin"
 	}
 
 	poured() {
@@ -39,7 +39,7 @@ prefix=/usr/local
 	}
 
 	inlibs() {
-		test -e "/Library/$1".* -o -e "$HOME/Library/$1".*
+		test -e "/Library/$1" -o -e "$HOME/Library/$1"
 	}
 
 	inapps() {
