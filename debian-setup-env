@@ -52,11 +52,13 @@ prefix=/usr/local
 			shift
 			(
 				cd "$dir"
+				echo $(basename "$dir")
 				[ -f "$2" -o -f "$3" ] && "$@" && \
 					cd .. && rm -rf "$dir"
 			) || die "Can't install $(basename "$dir")"
 		else
 			[ -f "$2" ] && file="$2" || file="$3"
+			echo $(basename "$file")
 			([ -f "$file" ] && "$@" && rm -f "$file") || \
 				die "Can't install $(basename "$file")"
 		fi
@@ -67,6 +69,7 @@ prefix=/usr/local
 	}
 
 	download() {
+		echo $1
 		if [ $# -eq 1 ]; then
 			curl -fsSL "$1" || warn "Can't download $1"
 		else
@@ -223,7 +226,6 @@ inapps "VLC"                                 || brew cask install vlc
 	exist gvim         || install vim-gtk
 	exist java         || install default-jre
 	exist libtoolize   || install libtool
-	exist mkfs.hfs     || install hfsprogs
 	exist mount.exfat  || install exfat-fuse exfat-utils
 	exist nitrogen     || install nitrogen
 	exist rename       || install rename
@@ -430,8 +432,9 @@ inapps "VLC"                                 || brew cask install vlc
 		clone https://github.com/aaron-williamson/base16-gnome-terminal.git "$TMPDIR/base16-terminal"
 		rundel "$TMPDIR/base16-terminal" sh -c \
 			'for s in color-scripts/*-256.sh; do
-				sed -i -e "s/\"base 16 /\"/i" -e "s/ 256\"/\"/" $s
-				bash $s
+				echo ${s/color-scripts\//}
+				sed -i -e "s/\"base 16 /\"/i" -e "s/ 256\"/\"/" "$s"
+				bash "$s"
 			done'
 	fi
 
@@ -457,8 +460,9 @@ inapps "VLC"                                 || brew cask install vlc
 	# Map [Shift]+[Backspace] to [Delete]
 	regex='backspace,[[:space:]]*backspace'
 	replace='BackSpace, Delete'
-	file="/usr/share/X11/xkb/symbols/pc"
-	sed -i -e "s/$regex/$replace/ig" $file
+	for file in pc inet us macintosh_vndr/apple macintosh_vndr/us; do
+		sed -i -e "s/$regex/$replace/ig" /usr/share/X11/xkb/symbols/$file
+	done
 
 	gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us+mac'), ('xkb', 'de')]"
 	gsettings set org.gnome.desktop.input-sources xkb-options "['lv3:ralt_switch', 'ctrl:swap_lwin_lctl', 'ctrl:swap_rwin_rctl', 'terminate:ctrl_alt_bksp']"
