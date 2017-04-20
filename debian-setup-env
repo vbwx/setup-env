@@ -27,7 +27,7 @@ prefix=/usr/local
 
 	islocal() {
 		bin=$(which $1)
-		exist $1 && test "${bin#*$prefix/bin}" != "$bin"
+		exist $1 && test "${bin#*$prefix}" != "$bin"
 	}
 
 #	inshare() {
@@ -170,8 +170,6 @@ inapps "Google Chrome"                       || brew cask install google-chrome
 inapps "HandBrake"                           || brew cask install handbrake
 inapps "MacVim"                              || brew cask install macvim
 inapps "MAMP/MAMP"                           || brew cask install mamp
-inapps "OpenOffice"                          || brew cask install openoffice
-inapps "Opera"                               || brew cask install opera
 inapps "Platypus"                            || brew cask install platypus
 inapps "Skim"                                || brew cask install skim
 inapps "Skype"                               || brew cask install skype
@@ -186,7 +184,6 @@ inapps "VLC"                                 || brew cask install vlc
 
 #{{{ Apt
 
-	echo ">> APT"
 	#{{{ Repositories
 
 	echo ">> APT repositories"
@@ -210,8 +207,6 @@ inapps "VLC"                                 || brew cask install vlc
 
 	echo ">> APT packages"
 
-	apt-get update
-
 	exist 7z           || install p7zip
 	exist ag           || install silversearcher-ag
 	exist autoconf     || install autoconf
@@ -230,7 +225,6 @@ inapps "VLC"                                 || brew cask install vlc
 	exist nitrogen     || install nitrogen
 	exist rename       || install rename
 	exist rabbitvcs    || install rabbitvcs-nautilus rabbitvcs-cli
-	exist slack        || install slack
 	exist svn          || install subversion
 	# exist tex        || install texlive-full
 	exist tree         || install tree
@@ -379,10 +373,9 @@ inapps "VLC"                                 || brew cask install vlc
 
 	echo ">> Vim"
 
-	[ -f "uvim" ] || die "Can't find uvim script"
-	link=$(readlink -n $prefix/bin/uvim)
-	[ "${link#*mvim}" = "$link" ] && cp -f uvim $prefix/bin
+	[ -f "$setup/uvim" ] || die "Can't find uvim script"
 
+	islocal uvim     || cp -f "$setup/uvim" $prefix/bin || die "Can't copy uvim script"
 	islocal vi       || ln -s $prefix/bin/uvim $prefix/bin/vi
 	islocal vim      || ln -s $prefix/bin/uvim $prefix/bin/vim
 	islocal gvim     || ln -s $prefix/bin/uvim $prefix/bin/gvim
@@ -395,7 +388,7 @@ inapps "VLC"                                 || brew cask install vlc
 	islocal viman    || ln -s $prefix/bin/uvim $prefix/bin/viman
 	islocal gviman   || ln -s $prefix/bin/uvim $prefix/bin/gviman
 
-	islocal vim || diecmd mvim
+	islocal vim || diecmd uvim
 
 	download http://ftp.vim.org/pub/vim/runtime/spell/de.utf-8.spl "$HOME/.vim/spell/de.utf-8.spl"
 	download https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim "$HOME/.vim/autoload/plug.vim"

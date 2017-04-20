@@ -27,7 +27,7 @@ prefix=/usr/local
 
 	islocal() {
 		bin=$(which $1)
-		exist $1 && test "${bin#*$prefix/bin}" != "$bin"
+		exist $1 && test "${bin#*$prefix}" != "$bin"
 	}
 
 	poured() {
@@ -39,7 +39,7 @@ prefix=/usr/local
 	}
 
 	inlibs() {
-		test -e "/Library/$1".* -o -e "$HOME/Library/$1".*
+		test -e "/Library/$1" -o -e "$HOME/Library/$1"
 	}
 
 	inapps() {
@@ -150,7 +150,6 @@ prefix=/usr/local
 
 	exist brew      || diecmd brew
 	tapped caskroom || brew tap caskroom/cask
-	brew update
 
 	#{{{ Packages
 
@@ -197,35 +196,31 @@ prefix=/usr/local
 
 	echo ">> Homebrew casks"
 
-	inapps "AppCleaner"                       || installc appcleaner
-	inapps "Dropbox"                          || installc dropbox
-	inapps "Firefox"                          || installc firefox
-	inapps "GitHub Desktop"                   || installc github-desktop
-	inapps "Google Chrome"                    || installc google-chrome
-	inapps "HandBrake"                        || installc handbrake
-	inapps "MacVim"                           || installc macvim
-	inapps "MAMP/MAMP"                        || installc mamp
-	inapps "OpenOffice"                       || installc openoffice
-	inapps "Opera"                            || installc opera
-	inapps "Platypus"                         || installc platypus
-	inapps "Skim"                             || installc skim
-	inapps "Skype"                            || installc skype
-	inapps "Slack"                            || installc slack
-	inapps "Suspicious Package"               || installc suspicious-package
-	inapps "TeamViewer"                       || installc teamviewer
-	inapps "Things"                           || installc things
-	inapps "Transmission"                     || installc transmission
-	inapps "Transmit"                         || installc transmit
-	inapps "VirtualBox"                       || installc virtualbox
-	inapps "VLC"                              || installc vlc
-	inlibs "TeX/Root/texmf.cnf"               || installc mactex
-	inlibs "PreferencePanes/JavaControlPanel" || installc java
-	inlibs "QuickLook/BetterZipQL"            || installc betterzipql
-	inlibs "QuickLook/QLColorCode"            || installc qlcolorcode
-	inlibs "QuickLook/QLMarkdown"             || installc qlmarkdown
-	inlibs "QuickLook/QuickLookCSV"           || installc quicklook-csv
-	inlibs "QuickLook/QuickLookJSON"          || installc quicklook-json
-	inlibs "QuickLook/WebP"                   || installc webpquicklook
+	exist  java                                || installc java
+	exist  pdflatex                            || installc mactex
+	inapps AppCleaner                          || installc appcleaner
+	inapps Dropbox                             || installc dropbox
+	inapps Firefox                             || installc firefox
+	inapps GitHub\ Desktop                     || installc github-desktop
+	inapps Google\ Chrome                      || installc google-chrome
+	inapps HandBrake                           || installc handbrake
+	inapps MacVim                              || installc macvim
+	inapps MAMP/MAMP                           || installc mamp
+	inapps Platypus                            || installc platypus
+	inapps Skim                                || installc skim
+	inapps Skype                               || installc skype
+	inapps Suspicious\ Package                 || installc suspicious-package
+	inapps TeamViewer                          || installc teamviewer
+	inapps Things                              || installc things
+	inapps Transmission                        || installc transmission
+	inapps Transmit                            || installc transmit
+	inapps VirtualBox                          || installc virtualbox
+	inapps VLC                                 || installc vlc
+	inlibs QuickLook/QLColorCode.qlgenerator   || installc qlcolorcode
+	inlibs QuickLook/QLMarkdown.qlgenerator    || installc qlmarkdown
+	inlibs QuickLook/QuickLookCSV.qlgenerator  || installc quicklook-csv
+	inlibs QuickLook/QuickLookJSON.qlgenerator || installc quicklook-json
+	inlibs QuickLook/WebP.qlgenerator          || installc webpquicklook
 
 	#}}}
 #}}}
@@ -362,10 +357,11 @@ prefix=/usr/local
 
 	echo ">> Vim"
 
-	[ -f "mvim" ] || die "Can't find mvim script"
+	[ -r "$setup/mvim" ] || die "Can't find mvim script"
 	link=$(readlink -n $prefix/bin/mvim)
-	[ "${link#*mvim}" = "$link" ] && cp -f mvim $prefix/bin
+	[ "${link#*mvim}" = "$link" ] && cp -f "$setup/mvim" $prefix/bin
 
+	islocal mvim     || diecmd mvim
 	islocal vi       || ln -s $prefix/bin/mvim $prefix/bin/vi
 	islocal vim      || ln -s $prefix/bin/mvim $prefix/bin/vim
 	islocal gvim     || ln -s $prefix/bin/mvim $prefix/bin/gvim
