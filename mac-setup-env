@@ -197,7 +197,7 @@ prefix=/usr/local
 	echo ">> Homebrew casks"
 
 	exist  java                                || installc java
-	exist  pdflatex                            || installc mactex
+	exist  tex                                 || installc mactex
 	inapps AppCleaner                          || installc appcleaner
 	inapps Dropbox                             || installc dropbox
 	inapps Firefox                             || installc firefox
