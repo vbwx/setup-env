@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Exec=/home/bw/.local/bin/mouse-speed
+Exec=~/.local/bin/mouse-speed
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true

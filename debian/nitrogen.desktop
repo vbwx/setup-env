@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Exec=/usr/bin/nitrogen --restore
+Exec=nitrogen --restore
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true

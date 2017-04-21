@@ -77,6 +77,10 @@ prefix=/usr/local
 		fi
 	}
 
+	modify() {
+		sed -i -re "$1" "$2" || warn "Can't modify $2"
+	}
+
 #}}}
 
 #{{{ Environment variables
@@ -451,10 +455,8 @@ inapps "VLC"                                 || brew cask install vlc
 	echo ">> Keyboard configuration"
 
 	# Map [Shift]+[Backspace] to [Delete]
-	regex='backspace,[[:space:]]*backspace'
-	replace='BackSpace, Delete'
 	for file in pc inet us macintosh_vndr/apple macintosh_vndr/us; do
-		sed -i -e "s/$regex/$replace/ig" /usr/share/X11/xkb/symbols/$file
+		modify "s/backspace,[[:space:]]*backspace/BackSpace, Delete/ig" /usr/share/X11/xkb/symbols/$file
 	done
 
 	gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us+mac'), ('xkb', 'de')]"
@@ -468,12 +470,19 @@ inapps "VLC"                                 || brew cask install vlc
 
 	if ! inhome .config/autostart/mouse-speed.desktop; then
 		[ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin"
-		cp "$setup/mouse-speed" "$HOME/.local/bin"
-		cp "$setup/mouse-speed.desktop" "$HOME/.config/autostart"
+		xinput --list --short
+		echo -n "IDs of your pointing devices (space-separated): "
+		read ids
+		file="$setup/mouse-speed"
+		modify "s/\$ids/$ids/" "$file"
+		cp "$file" "$HOME/.local/bin" || die "Can't copy mouse-speed"
+		file="$setup/mouse-speed.desktop"
+		modify "s/~\\//$HOME\\//" "$file"
+		cp "$file" "$HOME/.config/autostart" || die "Can't copy mouse-speed.desktop"
 	fi
 	if ! inhome .config/autostart/nitrogen.desktop; then
 		exist nitrogen || diecmd nitrogen
-		cp "$setup/nitrogen.desktop" "$HOME/.config/autostart"
+		cp "$setup/nitrogen.desktop" "$HOME/.config/autostart" || die "Can't copy nitrogen.desktop"
 		nitrogen &> /dev/null &
 	fi
 
@@ -483,10 +492,8 @@ inapps "VLC"                                 || brew cask install vlc
 
 	echo ">> Modify application shortcuts"
 
-	regex='google-chrome[[:alnum:]\-]*'
-	replace='& --enable-native-gpu-memory-buffers'
 	file="/usr/share/applications/google-chrome.desktop"
-	sed -i -re "s/$regex/$replace/g" $file
+	modify "s/google-chrome[[:alnum:]\\-]*/& --enable-native-gpu-memory-buffers/g" $file
 
 	#}}}
 #}}}
