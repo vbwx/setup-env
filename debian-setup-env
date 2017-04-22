@@ -1,5 +1,4 @@
-#!/bin/zsh
-# Run with 'sudo zsh debian-setup-env'
+#!/bin/bash
 
 # Change the install location if necessary:
 prefix=/usr/local
@@ -30,6 +29,10 @@ prefix=/usr/local
 		exist $1 && test "${bin#*$prefix}" != "$bin"
 	}
 
+	islink() {
+		exist $1 && test -L "$(which $1)"
+	}
+
 #	inshare() {
 #		test -e "/usr/share/$1" || test -e "$prefix/share/$1"
 #	}
@@ -54,12 +57,12 @@ prefix=/usr/local
 				cd "$dir"
 				echo $(basename "$dir")
 				[ -f "$2" -o -f "$3" ] && "$@" && \
-					cd .. && rm -rf "$dir"
+					cd .. && rm -rvf "$dir"
 			) || die "Can't install $(basename "$dir")"
 		else
 			[ -f "$2" ] && file="$2" || file="$3"
 			echo $(basename "$file")
-			([ -f "$file" ] && "$@" && rm -f "$file") || \
+			([ -f "$file" ] && "$@" && rm -vf "$file") || \
 				die "Can't install $(basename "$file")"
 		fi
 	}
@@ -81,6 +84,24 @@ prefix=/usr/local
 		sed -i -re "$1" "$2" || warn "Can't modify $2"
 	}
 
+	copy() {
+		cp -vf "$@" || exit 1
+	}
+
+	link() {
+		ln -vs "$@" || exit 1
+	}
+
+	makedir() {
+		mkdir -vp "$@" || exit 1
+	}
+
+#}}}
+
+#{{{ Check for root access
+
+# [ -w ... ]
+
 #}}}
 
 #{{{ Environment variables
@@ -91,6 +112,7 @@ prefix=/usr/local
 
 	echo "PATH = $PATH"
 	[ ${PATH#*$prefix/bin} = $PATH ] && export PATH="$prefix/bin:$PATH"
+	[ -d $prefix/bin ] || makedir $prefix/bin
 	export TMPDIR=${TMPDIR:-/tmp}
 	export RBENV_ROOT="$prefix/rbenv"
 	export PYENV_ROOT="$prefix/pyenv"
@@ -109,19 +131,19 @@ prefix=/usr/local
 		clone https://github.com/vbwx/dotfiles.git "$cfg"
 
 		if [ -d "$cfg" ]; then
-			inhome .bash_profile      || ln -s "$cfg/bash_profile" "$HOME/.bash_profile"
-			inhome .bashrc            || ln -s "$cfg/bashrc" "$HOME/.bashrc"
-			inhome .coffeelint.json   || ln -s "$cfg/coffeelint.json" "$HOME/.coffeelint.json"
-			inhome .eslintrc.json     || ln -s "$cfg/eslintrc.json" "$HOME/.eslintrc.json"
-			inhome .config/git/config || ln -s "$cfg/gitconfig" "$HOME/.config/git/config"
-			inhome .config/git/ignore || ln -s "$cfg/gitignore" "$HOME/.config/git/ignore"
-			inhome .vim/vimrc         || ln -s "$cfg/vimrc" "$HOME/.vim/vimrc"
-			inhome .vim/gvimrc        || ln -s "$cfg/gvimrc" "$HOME/.vim/gvimrc"
-			inhome .profile           || ln -s "$cfg/profile" "$HOME/.profile"
-			inhome .scss-lint.yml     || ln -s "$cfg/scss-lint.yml" "$HOME/.scss-lint.yml"
-			inhome .tern-project      || ln -s "$cfg/tern-project.json" "$HOME/.tern-project"
-			inhome .localenv          || ln -s "$cfg/localenv" "$HOME/.localenv"
-			inhome .inputrc           || ln -s "$cfg/inputrc" "$HOME/.inputrc"
+			inhome .bash_profile      || link "$cfg/bash_profile" "$HOME/.bash_profile"
+			inhome .bashrc            || link "$cfg/bashrc" "$HOME/.bashrc"
+			inhome .coffeelint.json   || link "$cfg/coffeelint.json" "$HOME/.coffeelint.json"
+			inhome .eslintrc.json     || link "$cfg/eslintrc.json" "$HOME/.eslintrc.json"
+			inhome .config/git/config || link "$cfg/gitconfig" "$HOME/.config/git/config"
+			inhome .config/git/ignore || link "$cfg/gitignore" "$HOME/.config/git/ignore"
+			inhome .vim/vimrc         || link "$cfg/vimrc" "$HOME/.vim/vimrc"
+			inhome .vim/gvimrc        || link "$cfg/gvimrc" "$HOME/.vim/gvimrc"
+			inhome .profile           || link "$cfg/profile" "$HOME/.profile"
+			inhome .scss-lint.yml     || link "$cfg/scss-lint.yml" "$HOME/.scss-lint.yml"
+			inhome .tern-project      || link "$cfg/tern-project.json" "$HOME/.tern-project"
+			inhome .localenv          || link "$cfg/localenv" "$HOME/.localenv"
+			inhome .inputrc           || link "$cfg/inputrc" "$HOME/.inputrc"
 		fi
 	fi
 
@@ -134,6 +156,7 @@ exist automake         || brew install automake
 poured bash-completion || brew install bash-completion
 tapped caskroom        || brew tap     caskroom/cask
 exist cmake            || brew install cmake
+exist colordiff        || brew install colordiff
 poured coreutils       || brew install coreutils
 exist cowsay           || brew install cowsay
 exist cscope           || brew install cscope
@@ -268,7 +291,7 @@ inapps "VLC"                                 || brew cask install vlc
 	if ! islocal node; then
 		nvm install node || die "Can't install Node"
 	fi
-	[ -e $prefix/node ] || ln -s "$NVM_DIR/versions/node/$(nvm current)" $prefix/node || warn "Can't symlink $prefix/node"
+	[ -e $prefix/node ] || link "$NVM_DIR/versions/node/$(nvm current)" $prefix/node
 
 	#{{{ Packages
 
@@ -377,22 +400,21 @@ inapps "VLC"                                 || brew cask install vlc
 
 	echo ">> Vim"
 
-	[ -f "$setup/uvim" ] || die "Can't find uvim script"
+	[ -f "$setup/vim" ] || die "Can't find vim script"
 
-	islocal uvim     || cp -f "$setup/uvim" $prefix/bin || die "Can't copy uvim script"
-	islocal vi       || ln -s $prefix/bin/uvim $prefix/bin/vi
-	islocal vim      || ln -s $prefix/bin/uvim $prefix/bin/vim
-	islocal gvim     || ln -s $prefix/bin/uvim $prefix/bin/gvim
-	islocal rvim     || ln -s $prefix/bin/uvim $prefix/bin/rvim
-	islocal rgvim    || ln -s $prefix/bin/uvim $prefix/bin/rgvim
-	islocal view     || ln -s $prefix/bin/uvim $prefix/bin/view
-	islocal gview    || ln -s $prefix/bin/uvim $prefix/bin/gview
-	islocal vimdiff  || ln -s $prefix/bin/uvim $prefix/bin/vimdiff
-	islocal gvimdiff || ln -s $prefix/bin/uvim $prefix/bin/gvimdiff
-	islocal viman    || ln -s $prefix/bin/uvim $prefix/bin/viman
-	islocal gviman   || ln -s $prefix/bin/uvim $prefix/bin/gviman
+	islocal vim      || copy "$setup/vim" $prefix/bin
+	islocal vi       || link $prefix/bin/vim $prefix/bin/vi
+	islocal gvim     || link $prefix/bin/vim $prefix/bin/gvim
+	islocal rvim     || link $prefix/bin/vim $prefix/bin/rvim
+	islocal rgvim    || link $prefix/bin/vim $prefix/bin/rgvim
+	islocal view     || link $prefix/bin/vim $prefix/bin/view
+	islocal gview    || link $prefix/bin/vim $prefix/bin/gview
+	islocal vimdiff  || link $prefix/bin/vim $prefix/bin/vimdiff
+	islocal gvimdiff || link $prefix/bin/vim $prefix/bin/gvimdiff
+	islocal viman    || link $prefix/bin/vim $prefix/bin/viman
+	islocal gviman   || link $prefix/bin/vim $prefix/bin/gviman
 
-	islocal vim || diecmd uvim
+	islocal vim || diecmd vim
 
 	download http://ftp.vim.org/pub/vim/runtime/spell/de.utf-8.spl "$HOME/.vim/spell/de.utf-8.spl"
 	download https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim "$HOME/.vim/autoload/plug.vim"
@@ -411,7 +433,7 @@ inapps "VLC"                                 || brew cask install vlc
 	if [ ! -L "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
 		setopt EXTENDED_GLOB
 		for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do
-			ln -s "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
+			link "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
 		done
 	fi
 
@@ -475,14 +497,14 @@ inapps "VLC"                                 || brew cask install vlc
 		read ids
 		file="$setup/mouse-speed"
 		modify "s/\$ids/$ids/" "$file"
-		cp "$file" "$HOME/.local/bin" || die "Can't copy mouse-speed"
+		copy "$file" "$HOME/.local/bin"
 		file="$setup/mouse-speed.desktop"
 		modify "s/~\\//$HOME\\//" "$file"
-		cp "$file" "$HOME/.config/autostart" || die "Can't copy mouse-speed.desktop"
+		copy "$file" "$HOME/.config/autostart"
 	fi
 	if ! inhome .config/autostart/nitrogen.desktop; then
 		exist nitrogen || diecmd nitrogen
-		cp "$setup/nitrogen.desktop" "$HOME/.config/autostart" || die "Can't copy nitrogen.desktop"
+		copy "$setup/nitrogen.desktop" "$HOME/.config/autostart"
 		nitrogen &> /dev/null &
 	fi
 
@@ -524,7 +546,7 @@ inapps "VLC"                                 || brew cask install vlc
 		if [ $(head -n 1 "$TMPDIR/paths") = "$prefix/bin" ]; then
 			echo "New /etc/paths:"
 			cat "$TMPDIR/paths"
-			sudo mv -f "$TMPDIR/paths" /etc || die "Can't overwrite /etc/paths"
+			sudo mv -v -f "$TMPDIR/paths" /etc || exit 1
 		else
 			die "Can't create temporary paths file"
 		fi

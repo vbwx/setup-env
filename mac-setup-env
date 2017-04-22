@@ -1,5 +1,4 @@
-#!/bin/zsh
-# Run with 'zsh mac-setup-env'
+#!/bin/bash
 
 # Change the install location if necessary:
 prefix=/usr/local
@@ -28,6 +27,10 @@ prefix=/usr/local
 	islocal() {
 		bin=$(which $1)
 		exist $1 && test "${bin#*$prefix}" != "$bin"
+	}
+
+	islink() {
+		exist $1 && test -L "$(which $1)"
 	}
 
 	poured() {
@@ -65,11 +68,11 @@ prefix=/usr/local
 			(
 				cd "$dir"
 				[ -f "$2" -o -f "$3" ] && "$@" && \
-					cd .. && rm -rf "$dir"
+					cd .. && rm -rvf "$dir"
 			) || die "Can't install $(basename "$dir")"
 		else
 			[ -f "$2" ] && file="$2" || file="$3"
-			([ -f "$file" ] && "$@" && rm -f "$file") || \
+			([ -f "$file" ] && "$@" && rm -vf "$file") || \
 				die "Can't install $(basename "$file")"
 		fi
 	}
@@ -84,6 +87,14 @@ prefix=/usr/local
 		else
 			[ -e "$2" ] || curl --create-dirs -fsSLo "$2" "$1" || warn "Can't download $1"
 		fi
+	}
+
+	copy() {
+		cp -vf "$@" || exit 1
+	}
+
+	link() {
+		ln -vs "$@" || exit 1
 	}
 
 #}}}
@@ -113,18 +124,18 @@ prefix=/usr/local
 		clone https://github.com/vbwx/dotfiles.git "$cfg"
 
 		if [ -d "$cfg" ]; then
-			inhome .bash_profile      || ln -s "$cfg/bash_profile" "$HOME/.bash_profile"
-			inhome .bashrc            || ln -s "$cfg/bashrc" "$HOME/.bashrc"
-			inhome .coffeelint.json   || ln -s "$cfg/coffeelint.json" "$HOME/.coffeelint.json"
-			inhome .eslintrc.json     || ln -s "$cfg/eslintrc.json" "$HOME/.eslintrc.json"
-			inhome .config/git/config || ln -s "$cfg/gitconfig" "$HOME/.config/git/config"
-			inhome .config/git/ignore || ln -s "$cfg/gitignore" "$HOME/.config/git/ignore"
-			inhome .vim/vimrc         || ln -s "$cfg/vimrc" "$HOME/.vim/vimrc"
-			inhome .vim/gvimrc        || ln -s "$cfg/gvimrc" "$HOME/.vim/gvimrc"
-			inhome .profile           || ln -s "$cfg/profile" "$HOME/.profile"
-			inhome .scss-lint.yml     || ln -s "$cfg/scss-lint.yml" "$HOME/.scss-lint.yml"
-			inhome .tern-project      || ln -s "$cfg/tern-project.json" "$HOME/.tern-project"
-			inhome .localenv          || ln -s "$cfg/localenv" "$HOME/.localenv"
+			inhome .bash_profile      || link "$cfg/bash_profile" "$HOME/.bash_profile"
+			inhome .bashrc            || link "$cfg/bashrc" "$HOME/.bashrc"
+			inhome .coffeelint.json   || link "$cfg/coffeelint.json" "$HOME/.coffeelint.json"
+			inhome .eslintrc.json     || link "$cfg/eslintrc.json" "$HOME/.eslintrc.json"
+			inhome .config/git/config || link "$cfg/gitconfig" "$HOME/.config/git/config"
+			inhome .config/git/ignore || link "$cfg/gitignore" "$HOME/.config/git/ignore"
+			inhome .vim/vimrc         || link "$cfg/vimrc" "$HOME/.vim/vimrc"
+			inhome .vim/gvimrc        || link "$cfg/gvimrc" "$HOME/.vim/gvimrc"
+			inhome .profile           || link "$cfg/profile" "$HOME/.profile"
+			inhome .scss-lint.yml     || link "$cfg/scss-lint.yml" "$HOME/.scss-lint.yml"
+			inhome .tern-project      || link "$cfg/tern-project.json" "$HOME/.tern-project"
+			inhome .localenv          || link "$cfg/localenv" "$HOME/.localenv"
 		fi
 	fi
 
@@ -148,7 +159,6 @@ prefix=/usr/local
 		rundel /usr/bin/ruby "$TMPDIR/homebrew.rb"
 	fi
 
-	exist brew      || diecmd brew
 	tapped caskroom || brew tap caskroom/cask
 
 	#{{{ Packages
@@ -160,6 +170,7 @@ prefix=/usr/local
 	exist automake         || install automake
 	poured bash-completion || install bash-completion
 	exist cmake            || install cmake
+	exist colordiff        || install colordiff
 	poured coreutils       || install coreutils
 	exist cowsay           || install cowsay
 	exist cscope           || install cscope
@@ -248,7 +259,7 @@ prefix=/usr/local
 	if ! islocal node; then
 		nvm install node || die "Can't install Node"
 	fi
-	[ -e $prefix/node ] || ln -s "$NVM_DIR/versions/node/$(nvm current)" $prefix/node || warn "Can't symlink $prefix/node"
+	[ -e $prefix/node ] || link "$NVM_DIR/versions/node/$(nvm current)" $prefix/node
 
 	#{{{ Packages
 
@@ -358,25 +369,23 @@ prefix=/usr/local
 	echo ">> Vim"
 
 	[ -r "$setup/mvim" ] || die "Can't find mvim script"
-	link=$(readlink -n $prefix/bin/mvim)
-	[ "${link#*mvim}" = "$link" ] && cp -f "$setup/mvim" $prefix/bin
+	diff "$setup/mvim" $prefix/bin/mvim &> /dev/null || copy "$setup/mvim" $prefix/bin
 
-	islocal mvim     || diecmd mvim
-	islocal vi       || ln -s $prefix/bin/mvim $prefix/bin/vi
-	islocal vim      || ln -s $prefix/bin/mvim $prefix/bin/vim
-	islocal gvim     || ln -s $prefix/bin/mvim $prefix/bin/gvim
-	islocal rvim     || ln -s $prefix/bin/mvim $prefix/bin/rvim
-	islocal rmvim    || ln -s $prefix/bin/mvim $prefix/bin/rmvim
-	islocal rgvim    || ln -s $prefix/bin/mvim $prefix/bin/rgvim
-	islocal view     || ln -s $prefix/bin/mvim $prefix/bin/view
-	islocal gview    || ln -s $prefix/bin/mvim $prefix/bin/gview
-	islocal mview    || ln -s $prefix/bin/mvim $prefix/bin/mview
-	islocal vimdiff  || ln -s $prefix/bin/mvim $prefix/bin/vimdiff
-	islocal gvimdiff || ln -s $prefix/bin/mvim $prefix/bin/gvimdiff
-	islocal mvimdiff || ln -s $prefix/bin/mvim $prefix/bin/mvimdiff
-	islocal viman    || ln -s $prefix/bin/mvim $prefix/bin/viman
-	islocal mviman   || ln -s $prefix/bin/mvim $prefix/bin/mviman
-	islocal gviman   || ln -s $prefix/bin/mvim $prefix/bin/gviman
+	islocal vi       || link $prefix/bin/mvim $prefix/bin/vi
+	islocal vim      || link $prefix/bin/mvim $prefix/bin/vim
+	islocal gvim     || link $prefix/bin/mvim $prefix/bin/gvim
+	islocal rvim     || link $prefix/bin/mvim $prefix/bin/rvim
+	islocal rmvim    || link $prefix/bin/mvim $prefix/bin/rmvim
+	islocal rgvim    || link $prefix/bin/mvim $prefix/bin/rgvim
+	islocal view     || link $prefix/bin/mvim $prefix/bin/view
+	islocal gview    || link $prefix/bin/mvim $prefix/bin/gview
+	islocal mview    || link $prefix/bin/mvim $prefix/bin/mview
+	islocal vimdiff  || link $prefix/bin/mvim $prefix/bin/vimdiff
+	islocal gvimdiff || link $prefix/bin/mvim $prefix/bin/gvimdiff
+	islocal mvimdiff || link $prefix/bin/mvim $prefix/bin/mvimdiff
+	islocal viman    || link $prefix/bin/mvim $prefix/bin/viman
+	islocal mviman   || link $prefix/bin/mvim $prefix/bin/mviman
+	islocal gviman   || link $prefix/bin/mvim $prefix/bin/gviman
 
 	islocal vim || diecmd mvim
 
@@ -397,7 +406,7 @@ prefix=/usr/local
 	if [ ! -L "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
 		setopt EXTENDED_GLOB
 		for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do
-			ln -s "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
+			link "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
 		done
 	fi
 
@@ -460,7 +469,7 @@ prefix=/usr/local
 		if [ $(head -n 1 "$TMPDIR/paths") = "$prefix/bin" ]; then
 			echo "New /etc/paths:"
 			cat "$TMPDIR/paths"
-			sudo mv -f "$TMPDIR/paths" /etc || die "Can't overwrite /etc/paths"
+			sudo mv -v -f "$TMPDIR/paths" /etc || exit 1
 		else
 			die "Can't create temporary paths file"
 		fi
