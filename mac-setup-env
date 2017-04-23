@@ -29,10 +29,6 @@ prefix=/usr/local
 		exist $1 && test "${bin#*$prefix}" != "$bin"
 	}
 
-	islink() {
-		exist $1 && test -L "$(which $1)"
-	}
-
 	poured() {
 		test -d "$prefix/Cellar/$1"
 	}

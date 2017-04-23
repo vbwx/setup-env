@@ -29,10 +29,6 @@ prefix=/usr/local
 		exist $1 && test "${bin#*$prefix}" != "$bin"
 	}
 
-	islink() {
-		exist $1 && test -L "$(which $1)"
-	}
-
 #	inshare() {
 #		test -e "/usr/share/$1" || test -e "$prefix/share/$1"
 #	}
