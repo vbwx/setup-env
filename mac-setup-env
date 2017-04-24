@@ -3,30 +3,49 @@
 # Change the install location if necessary:
 prefix=/usr/local
 
+#{{{ Initialization
+
+	set +o histexpand -o errexit -o nounset
+	shopt -s extglob
+
+	setup="$(dirname "$0")/mac"
+	cfg="$HOME/.config/dotfiles"
+
+	export TMPDIR=${TMPDIR:-/private/tmp}
+	export RBENV_ROOT="$prefix/rbenv"
+	export PYENV_ROOT="$prefix/pyenv"
+	export NVM_DIR="$prefix/nvm"
+	export PERLBREW_ROOT="$prefix/perlbrew"
+	echo "PATH = $PATH"
+
+	[[ ${PATH#*$prefix/bin} = "$PATH" ]] && export PATH="$prefix/bin:$PATH"
+
+#}}}
+
 #{{{ Functions
 
 	die() {
-		>&2 echo "\n$*!"
+		>&2 echo -e "\n$*!"
 		exit 1
 	}
 
 	diecmd() {
-		>&2 echo "\nCommand not found: $1"
+		>&2 echo -e "\nCommand not found: $1"
 		>&2 echo "Open a new shell and run this script again to continue with the setup."
 		exit 127
 	}
 
 	warn() {
-		>&2 echo "\n$*!\n"
+		>&2 echo -e "\n$*!\n"
 	}
 
 	exist() {
-		command -v $1 > /dev/null
+		hash "$1" 2> /dev/null
 	}
 
 	islocal() {
-		bin=$(which $1)
-		exist $1 && test "${bin#*$prefix}" != "$bin"
+		bin=$(type -P "$1")
+		exist "$1" && test "${bin#*$prefix}" != "$bin"
 	}
 
 	poured() {
@@ -50,11 +69,11 @@ prefix=/usr/local
 	}
 
 	install() {
-		brew install $@
+		brew install "$@"
 	}
 
 	installc() {
-		brew cask install $@
+		brew cask install "$@"
 	}
 
 	rundel() {
@@ -74,7 +93,7 @@ prefix=/usr/local
 	}
 
 	clone() {
-		[ -e "${@: -1}" ] || git clone "$@" || warn "Can't clone ${@: -2:1}"
+		[ -e "${@:(-1)}" ] || git clone "$@" || warn "Can't clone" "${@:(-2):1}"
 	}
 
 	download() {
@@ -92,21 +111,6 @@ prefix=/usr/local
 	link() {
 		ln -vs "$@" || exit 1
 	}
-
-#}}}
-
-#{{{ Environment variables
-
-	setup="$(dirname "$0")/mac"
-	cfg="$HOME/.config/dotfiles"
-
-	echo "PATH = $PATH"
-	[ ${PATH#*$prefix/bin} = $PATH ] && export PATH="$prefix/bin:$PATH"
-	export TMPDIR=${TMPDIR:-/private/tmp}
-	export RBENV_ROOT="$prefix/rbenv"
-	export PYENV_ROOT="$prefix/pyenv"
-	export NVM_DIR="$prefix/nvm"
-	export PERLBREW_ROOT="$prefix/perlbrew"
 
 #}}}
 
@@ -191,6 +195,7 @@ prefix=/usr/local
 	poured readline        || install readline
 	exist rename           || install rename
 	islocal rsync          || install homebrew/dupes/rsync
+	exist shellcheck       || install shellcheck
 	islocal svn            || install subversion
 	exist tig              || install tig
 	exist tree             || install tree
@@ -247,7 +252,7 @@ prefix=/usr/local
 	if [ ! -f "$NVM_DIR/nvm.sh" ]; then
 		clone https://github.com/creationix/nvm.git $NVM_DIR && (
 			cd $NVM_DIR
-			git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin` || die "Can't install nvm"
+			git checkout "$(git describe --abbrev=0 --tags --match "v[0-9]*" origin)" || die "Can't install nvm"
 		)
 	fi
 	exist nvm || source "$NVM_DIR/nvm.sh" || diecmd nvm
@@ -288,8 +293,8 @@ prefix=/usr/local
 	if ! islocal ruby; then
 		ver=$(rbenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')
 		[ "$ver" ] || die "Can't fetch latest Ruby version"
-		rbenv install $ver || die "Can't install Ruby"
-		rbenv global $ver
+		rbenv install "$ver" || die "Can't install Ruby"
+		rbenv global "$ver"
 	fi
 
 	#{{{ Gems
@@ -320,7 +325,7 @@ prefix=/usr/local
 		perlbrew install -n stable || die "Can't install Perl"
 		ver=$(perlbrew list | perl -ne '/perl-[\d.]+/; print $&; $& and exit;')
 		[ "$ver" ] || die "Can't find out installed Perl version"
-		perlbrew alias create perl-$ver default && perlbrew switch default
+		perlbrew alias create "perl-$ver" default && perlbrew switch default
 	fi
 
 	#{{{ Modules
@@ -343,8 +348,8 @@ prefix=/usr/local
 	if ! islocal python; then
 		ver=$(pyenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')
 		[ "$ver" ] || die "Can't fetch latest Python version"
-		CFLAGS="-I$(xcrun --show-sdk-path)/usr/include" pyenv install $ver || die "Can't install Python"
-		pyenv global $ver
+		CFLAGS="-I$(xcrun --show-sdk-path)/usr/include" pyenv install "$ver" || die "Can't install Python"
+		pyenv global "$ver"
 	fi
 
 #}}}
@@ -400,14 +405,13 @@ prefix=/usr/local
 
 	clone --recursive https://github.com/vbwx/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
 	if [ ! -L "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
-		setopt EXTENDED_GLOB
-		for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do
+		for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/!(README.md); do
 			link "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
 		done
 	fi
 
 	echo "SHELL = $SHELL"
-	[ $SHELL = "/bin/zsh" ] || chsh -s /bin/zsh
+	[[ $SHELL = "/bin/zsh" ]] || chsh -s /bin/zsh
 	touch "$HOME/.hushlogin"
 
 #}}}
@@ -416,13 +420,16 @@ prefix=/usr/local
 
 	echo ">> Base16"
 
+	_base16() {
+		for p in profiles/*.terminal; do
+			xattr -d com.apple.quarantine "$p"
+			open "$p"
+		done
+	}
+
 	if ! plutil -p "$HOME/Library/Preferences/com.apple.Terminal.plist" | grep -qi harmonic16; then
 		clone https://github.com/vbwx/base16-terminal-app.git "$TMPDIR/base16-terminal"
-		rundel "$TMPDIR/base16-terminal" sh -c \
-			'for p in profiles/*.terminal; do
-				xattr -d com.apple.quarantine $p
-				open $p
-			done'
+		rundel "$TMPDIR/base16-terminal" _base16
 	fi
 
 #}}}
@@ -456,13 +463,13 @@ prefix=/usr/local
 
 	if [ "${guipath#*$prefix/bin}" = "$guipath" ]; then
 		echo "New GUI PATH:"
-		echo $(IFS=: ; echo "${lpaths[*]}"):$guipath
+		echo "$(IFS=: ; echo "${lpaths[*]}"):$guipath"
 		sudo launchctl config user path "$(IFS=: ; echo "${lpaths[*]}"):$guipath"
 	fi
-	if [ $(head -n 1 /etc/paths) != "$prefix/bin" ]; then
+	if [[ $(head -n 1 /etc/paths) != "$prefix/bin" ]]; then
 		(IFS=$'\n'; echo "${lpaths[*]}" > "$TMPDIR/paths")
 		cat /etc/paths >> "$TMPDIR/paths"
-		if [ $(head -n 1 "$TMPDIR/paths") = "$prefix/bin" ]; then
+		if [[ $(head -n 1 "$TMPDIR/paths") = "$prefix/bin" ]]; then
 			echo "New /etc/paths:"
 			cat "$TMPDIR/paths"
 			sudo mv -v -f "$TMPDIR/paths" /etc || exit 1

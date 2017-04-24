@@ -3,30 +3,51 @@
 # Change the install location if necessary:
 prefix=/usr/local
 
+#{{{ Initialization
+
+	set +o histexpand -o errexit -o nounset
+	shopt -s extglob
+
+	dist=$(lsb_release -c | cut -f 2)
+	setup="$(dirname "$0")/debian"
+	cfg="$HOME/.config/dotfiles"
+
+	export TMPDIR=${TMPDIR:-/tmp}
+	export RBENV_ROOT="$prefix/rbenv"
+	export PYENV_ROOT="$prefix/pyenv"
+	export NVM_DIR="$prefix/nvm"
+	export PERLBREW_ROOT="$prefix/perlbrew"
+	echo "PATH = $PATH"
+
+	[[ ${PATH#*$prefix/bin} = "$PATH" ]] && export PATH="$prefix/bin:$PATH"
+	[ -d "$prefix/bin" ] || makedir "$prefix/bin"
+
+#}}}
+
 #{{{ Functions
 
 	die() {
-		>&2 echo "\n$*!"
+		>&2 echo -e "\n$*!"
 		exit 1
 	}
 
 	diecmd() {
-		>&2 echo "\nCommand not found: $1"
+		>&2 echo -e "\nCommand not found: $1"
 		>&2 echo "Open a new shell and run this script again to continue with the setup."
 		exit 127
 	}
 
 	warn() {
-		>&2 echo "\n$*!\n"
+		>&2 echo -e "\n$*!\n"
 	}
 
 	exist() {
-		command -v $1 > /dev/null
+		type "$1" &> /dev/null
 	}
 
 	islocal() {
-		bin=$(which $1)
-		exist $1 && test "${bin#*$prefix}" != "$bin"
+		bin=$(type -P "$1")
+		exist "$1" && test "${bin#*$prefix}" != "$bin"
 	}
 
 #	inshare() {
@@ -42,7 +63,7 @@ prefix=/usr/local
 	}
 
 	install() {
-		apt-get -y install $@
+		apt-get -y install "$@"
 	}
 
 	rundel() {
@@ -51,24 +72,22 @@ prefix=/usr/local
 			shift
 			(
 				cd "$dir"
-				echo $(basename "$dir")
 				[ -f "$2" -o -f "$3" ] && "$@" && \
 					cd .. && rm -rvf "$dir"
 			) || die "Can't install $(basename "$dir")"
 		else
 			[ -f "$2" ] && file="$2" || file="$3"
-			echo $(basename "$file")
 			([ -f "$file" ] && "$@" && rm -vf "$file") || \
 				die "Can't install $(basename "$file")"
 		fi
 	}
 
 	clone() {
-		[ -e "${@: -1}" ] || git clone "$@" || warn "Can't clone ${@: -2:1}"
+		[ -e "${@:(-1)}" ] || git clone "$@" || warn "Can't clone" "${@:(-2):1}"
 	}
 
 	download() {
-		echo $1
+		echo "$1"
 		if [ $# -eq 1 ]; then
 			curl -fsSL "$1" || warn "Can't download $1"
 		else
@@ -97,23 +116,6 @@ prefix=/usr/local
 #{{{ Check for root access
 
 # [ -w ... ]
-
-#}}}
-
-#{{{ Environment variables
-
-	dist=$(lsb_release -c | cut -f 2)
-	setup="$(dirname "$0")/debian"
-	cfg="$HOME/.config/dotfiles"
-
-	echo "PATH = $PATH"
-	[ ${PATH#*$prefix/bin} = $PATH ] && export PATH="$prefix/bin:$PATH"
-	[ -d $prefix/bin ] || makedir $prefix/bin
-	export TMPDIR=${TMPDIR:-/tmp}
-	export RBENV_ROOT="$prefix/rbenv"
-	export PYENV_ROOT="$prefix/pyenv"
-	export NVM_DIR="$prefix/nvm"
-	export PERLBREW_ROOT="$prefix/perlbrew"
 
 #}}}
 
@@ -243,16 +245,19 @@ inapps "VLC"                                 || brew cask install vlc
 	exist gnome-tweak-tool || install gnome-tweak-tool
 	exist gvim         || install vim-gtk
 	exist java         || install default-jre
+	# exist latex      || install texlive texlive-lang-german texlive-latex-extra
+	# exist latexmk    || install latexmk
 	exist libtoolize   || install libtool
 	exist mount.exfat  || install exfat-fuse exfat-utils
 	exist nitrogen     || install nitrogen
 	exist rename       || install rename
 	exist rabbitvcs    || install rabbitvcs-nautilus rabbitvcs-cli
+	exist shellcheck   || install shellcheck
 	exist svn          || install subversion
-	# exist tex        || install texlive-full
 	exist tree         || install tree
 	exist virtualbox   || install virtualbox-5.1
 	exist zeal         || install zeal
+	exist zsh          || install zsh
 
 	if ! exist google-chrome; then
 		download https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb "$TMPDIR/google-chrome.deb"
@@ -279,7 +284,7 @@ inapps "VLC"                                 || brew cask install vlc
 	if [ ! -f "$NVM_DIR/nvm.sh" ]; then
 		clone https://github.com/creationix/nvm.git $NVM_DIR && (
 			cd $NVM_DIR
-			git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin` || die "Can't install nvm"
+			git checkout "$(git describe --abbrev=0 --tags --match "v[0-9]*" origin)" || die "Can't install nvm"
 		)
 	fi
 	exist nvm || source "$NVM_DIR/nvm.sh" || diecmd nvm
@@ -320,8 +325,8 @@ inapps "VLC"                                 || brew cask install vlc
 	if ! islocal ruby; then
 		ver=$(rbenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')
 		[ "$ver" ] || die "Can't fetch latest Ruby version"
-		rbenv install $ver || die "Can't install Ruby"
-		rbenv global $ver
+		rbenv install "$ver" || die "Can't install Ruby"
+		rbenv global "$ver"
 	fi
 
 	#{{{ Gems
@@ -352,7 +357,7 @@ inapps "VLC"                                 || brew cask install vlc
 		perlbrew install -n stable || die "Can't install Perl"
 		ver=$(perlbrew list | perl -ne '/perl-[\d.]+/; print $&; $& and exit;')
 		[ "$ver" ] || die "Can't find out installed Perl version"
-		perlbrew alias create perl-$ver default && perlbrew switch default
+		perlbrew alias create perl-"$ver" default && perlbrew switch default
 	fi
 
 	#{{{ Modules
@@ -375,8 +380,8 @@ inapps "VLC"                                 || brew cask install vlc
 	if ! islocal python; then
 		ver=$(pyenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')
 		[ "$ver" ] || die "Can't fetch latest Python version"
-		CFLAGS="-I$(xcrun --show-sdk-path)/usr/include" pyenv install $ver || die "Can't install Python"
-		pyenv global $ver
+		CFLAGS="-I$(xcrun --show-sdk-path)/usr/include" pyenv install "$ver" || die "Can't install Python"
+		pyenv global "$ver"
 	fi
 
 #}}}
@@ -427,14 +432,13 @@ inapps "VLC"                                 || brew cask install vlc
 
 	clone --recursive https://github.com/vbwx/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
 	if [ ! -L "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
-		setopt EXTENDED_GLOB
-		for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do
+		for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/!(README.md); do
 			link "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
 		done
 	fi
 
 	echo "SHELL = $SHELL"
-	[ $SHELL = "/bin/zsh" ] || chsh -s /bin/zsh
+	[[ $SHELL = "/bin/zsh" ]] || chsh -s /bin/zsh
 	touch "$HOME/.hushlogin"
 
 #}}}
@@ -443,14 +447,17 @@ inapps "VLC"                                 || brew cask install vlc
 
 	echo ">> Base16"
 
+	_base16() {
+		for s in color-scripts/*-256.sh; do
+			echo "${s/color-scripts\//}"
+			sed -i -e "s/\"base 16 /\"/i" -e "s/ 256\"/\"/" "$s"
+			bash "$s"
+		done
+	}
+
 	if ! dconf dump /org/gnome/terminal/legacy/profiles:/ | grep -qi harmonic16; then
 		clone https://github.com/aaron-williamson/base16-gnome-terminal.git "$TMPDIR/base16-terminal"
-		rundel "$TMPDIR/base16-terminal" sh -c \
-			'for s in color-scripts/*-256.sh; do
-				echo ${s/color-scripts\//}
-				sed -i -e "s/\"base 16 /\"/i" -e "s/ 256\"/\"/" "$s"
-				bash "$s"
-			done'
+		rundel "$TMPDIR/base16-terminal" _base16
 	fi
 
 #}}}
@@ -533,13 +540,13 @@ inapps "VLC"                                 || brew cask install vlc
 
 	if [ "${guipath#*$prefix/bin}" = "$guipath" ]; then
 		echo "New GUI PATH:"
-		echo $(IFS=: ; echo "${lpaths[*]}"):$guipath
+		echo "$(IFS=: ; echo "${lpaths[*]}"):$guipath"
 		sudo launchctl config user path "$(IFS=: ; echo "${lpaths[*]}"):$guipath"
 	fi
-	if [ $(head -n 1 /etc/paths) != "$prefix/bin" ]; then
+	if [[ $(head -n 1 /etc/paths) != "$prefix/bin" ]]; then
 		(IFS=$'\n'; echo "${lpaths[*]}" > "$TMPDIR/paths")
 		cat /etc/paths >> "$TMPDIR/paths"
-		if [ $(head -n 1 "$TMPDIR/paths") = "$prefix/bin" ]; then
+		if [[ $(head -n 1 "$TMPDIR/paths") = "$prefix/bin" ]]; then
 			echo "New /etc/paths:"
 			cat "$TMPDIR/paths"
 			sudo mv -v -f "$TMPDIR/paths" /etc || exit 1
