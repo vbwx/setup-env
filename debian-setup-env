@@ -8,17 +8,17 @@ prefix=/usr/local
 	set +o histexpand -o errexit -o nounset
 	shopt -s extglob
 
-	dist=$(lsb_release -c | cut -f 2)
+	dist="$(lsb_release -c | cut -f 2)"
 	setup="$(dirname "$0")/debian"
 	cfg="$HOME/.config/dotfiles"
 
-	export TMPDIR=${TMPDIR:-/tmp}
+	export TMPDIR="${TMPDIR:-/tmp}"
 	export RBENV_ROOT="$prefix/rbenv"
 	export PYENV_ROOT="$prefix/pyenv"
 	export NVM_DIR="$prefix/nvm"
 	export PERLBREW_ROOT="$prefix/perlbrew"
-	echo "PATH = $PATH"
 
+	echo "PATH = $PATH"
 	[[ ${PATH#*$prefix/bin} = "$PATH" ]] && export PATH="$prefix/bin:$PATH"
 	[ -d "$prefix/bin" ] || makedir "$prefix/bin"
 
@@ -46,7 +46,7 @@ prefix=/usr/local
 	}
 
 	islocal() {
-		bin=$(type -P "$1")
+		bin="$(type -P "$1")"
 		exist "$1" && test "${bin#*$prefix}" != "$bin"
 	}
 
@@ -123,26 +123,9 @@ prefix=/usr/local
 
 	echo ">> Dotfiles"
 
-	inhome .config/git || mkdir -p "$HOME/.config/git"
-	inhome .vim || mkdir "$HOME/.vim"
-	if ! inhome .config/dotfiles && ! inhome .localenv; then
+	if [ ! -d "$cfg" ]; then
 		clone https://github.com/vbwx/dotfiles.git "$cfg"
-
-		if [ -d "$cfg" ]; then
-			inhome .bash_profile      || link "$cfg/bash_profile" "$HOME/.bash_profile"
-			inhome .bashrc            || link "$cfg/bashrc" "$HOME/.bashrc"
-			inhome .coffeelint.json   || link "$cfg/coffeelint.json" "$HOME/.coffeelint.json"
-			inhome .eslintrc.json     || link "$cfg/eslintrc.json" "$HOME/.eslintrc.json"
-			inhome .config/git/config || link "$cfg/gitconfig" "$HOME/.config/git/config"
-			inhome .config/git/ignore || link "$cfg/gitignore" "$HOME/.config/git/ignore"
-			inhome .vim/vimrc         || link "$cfg/vimrc" "$HOME/.vim/vimrc"
-			inhome .vim/gvimrc        || link "$cfg/gvimrc" "$HOME/.vim/gvimrc"
-			inhome .profile           || link "$cfg/profile" "$HOME/.profile"
-			inhome .scss-lint.yml     || link "$cfg/scss-lint.yml" "$HOME/.scss-lint.yml"
-			inhome .tern-project      || link "$cfg/tern-project.json" "$HOME/.tern-project"
-			inhome .localenv          || link "$cfg/localenv" "$HOME/.localenv"
-			inhome .inputrc           || link "$cfg/inputrc" "$HOME/.inputrc"
-		fi
+		bash "$cfg/install"
 	fi
 
 #}}}
@@ -323,7 +306,7 @@ inapps "VLC"                                 || brew cask install vlc
 	eval "$(rbenv init -)"
 
 	if ! islocal ruby; then
-		ver=$(rbenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')
+		ver="$(rbenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')"
 		[ "$ver" ] || die "Can't fetch latest Ruby version"
 		rbenv install "$ver" || die "Can't install Ruby"
 		rbenv global "$ver"
@@ -355,7 +338,7 @@ inapps "VLC"                                 || brew cask install vlc
 
 	if ! islocal perl; then
 		perlbrew install -n stable || die "Can't install Perl"
-		ver=$(perlbrew list | perl -ne '/perl-[\d.]+/; print $&; $& and exit;')
+		ver="$(perlbrew list | perl -ne '/perl-[\d.]+/; print $&; $& and exit;')"
 		[ "$ver" ] || die "Can't find out installed Perl version"
 		perlbrew alias create perl-"$ver" default && perlbrew switch default
 	fi
@@ -378,7 +361,7 @@ inapps "VLC"                                 || brew cask install vlc
 	eval "$(pyenv init -)"
 
 	if ! islocal python; then
-		ver=$(pyenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')
+		ver="$(pyenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')"
 		[ "$ver" ] || die "Can't fetch latest Python version"
 		CFLAGS="-I$(xcrun --show-sdk-path)/usr/include" pyenv install "$ver" || die "Can't install Python"
 		pyenv global "$ver"
@@ -535,7 +518,7 @@ inapps "VLC"                                 || brew cask install vlc
 		$prefix/pyenv/shims
 		$prefix/rbenv/shims
 	)
-	guipath=$(launchctl getenv PATH)
+	guipath="$(launchctl getenv PATH)"
 	echo "GUI PATH = $guipath"
 
 	if [ "${guipath#*$prefix/bin}" = "$guipath" ]; then
