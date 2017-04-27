@@ -437,8 +437,6 @@ prefix=/usr/local
 		$prefix/bin
 		$prefix/sbin
 		$prefix/node/bin
-	)
-	gpaths=(
 		$prefix/perlbrew/perls/default/bin
 		$prefix/pyenv/shims
 		$prefix/rbenv/shims
@@ -449,8 +447,8 @@ prefix=/usr/local
 
 	if [ "${guipath#*$prefix/bin}" = "$guipath" ]; then
 		echo "New GUI PATH:"
-		echo "$(IFS=: ; echo "${gpaths[*]}"):$(IFS=: ; echo "${lpaths[*]}"):$guipath"
-		sudo launchctl config user path "$(IFS=: ; echo "${gpaths[*]}"):$(IFS=: ; echo "${lpaths[*]}"):$guipath"
+		echo "$(IFS=: ; echo "${lpaths[*]}"):$guipath"
+		sudo launchctl config user path "$(IFS=: ; echo "${lpaths[*]}"):$guipath"
 	fi
 	if [[ $(head -n 1 /etc/paths) != "$prefix/bin" ]]; then
 		(IFS=$'\n'; echo "${lpaths[*]}" > "$TMPDIR/paths")
