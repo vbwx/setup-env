@@ -46,7 +46,7 @@ prefix=/usr/local
 	}
 
 	islocal() {
-		bin="$(type -P "$1")"
+		bin="$(type -P "$1" 2> /dev/null)"
 		exist "$1" && test "${bin#*$prefix}" != "$bin"
 	}
 
@@ -513,30 +513,34 @@ inapps "VLC"                                 || brew cask install vlc
 	lpaths=(
 		$prefix/bin
 		$prefix/sbin
-		$prefix/node/bin
 		$prefix/perlbrew/perls/default/bin
 		$prefix/pyenv/shims
 		$prefix/rbenv/shims
+		$prefix/node/bin
+	)
+	texpaths=(
+		/Library/TeX/texbin
 	)
 	guipath="$(launchctl getenv PATH)"
 	echo "GUI PATH = $guipath"
 
 	if [ "${guipath#*$prefix/bin}" = "$guipath" ]; then
 		echo "New GUI PATH:"
-		echo "$(IFS=: ; echo "${lpaths[*]}"):$guipath"
-		sudo launchctl config user path "$(IFS=: ; echo "${lpaths[*]}"):$guipath"
+		guipath="$(IFS=: ; printf "${lpaths[*]}:${texpaths[*]}"):$guipath"
+		echo "$guipath"
+		sudo launchctl config user path "$guipath"
 	fi
 	if [[ $(head -n 1 /etc/paths) != "$prefix/bin" ]]; then
-		(IFS=$'\n'; echo "${lpaths[*]}" > "$TMPDIR/paths")
+		(IFS=$'\n'; printf "${lpaths[*]}\n" > "$TMPDIR/paths")
 		cat /etc/paths >> "$TMPDIR/paths"
-		if [[ $(head -n 1 "$TMPDIR/paths") = "$prefix/bin" ]]; then
-			echo "New /etc/paths:"
-			cat "$TMPDIR/paths"
-			sudo mv -v -f "$TMPDIR/paths" /etc || exit 1
-		else
-			die "Can't create temporary paths file"
-		fi
+		echo "New /etc/paths:"
+		cat "$TMPDIR/paths"
+		sudo mv -v -f "$TMPDIR/paths" /etc || exit 1
 	fi
+	if [ ! -e /etc/paths.d/TeX ]; then
+		echo "$(IFS=$'\n'; printf "${texpaths[*]}")\n" | sudo tee /etc/paths.d/TeX > /dev/null
+	fi
+
 
 #}}}
 

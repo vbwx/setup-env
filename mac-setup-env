@@ -40,11 +40,11 @@ prefix=/usr/local
 	}
 
 	exist() {
-		hash "$1" 2> /dev/null
+		type "$1" &> /dev/null
 	}
 
 	islocal() {
-		bin="$(type -P "$1")"
+		bin="$(type -P "$1" 2> /dev/null)"
 		exist "$1" && test "${bin#*$prefix}" != "$bin"
 	}
 
@@ -61,7 +61,7 @@ prefix=/usr/local
 	}
 
 	inapps() {
-		test -d "/Applications/$1.app" -o -d "$HOME/Applications/$1.app"
+		test -e "/Applications/$1.app" -o -e "$HOME/Applications/$1.app"
 	}
 
 	inhome() {
@@ -185,6 +185,8 @@ prefix=/usr/local
 	exist tree             || install tree
 	exist wdiff            || install wdiff
 	exist xz               || install xz
+
+	[[ $(type -P python) = "$prefix/bin/python" ]] && brew unlink python
 
 	#}}}
 
@@ -436,10 +438,12 @@ prefix=/usr/local
 	lpaths=(
 		$prefix/bin
 		$prefix/sbin
-		$prefix/node/bin
 		$prefix/perlbrew/perls/default/bin
 		$prefix/pyenv/shims
 		$prefix/rbenv/shims
+		$prefix/node/bin
+	)
+	texpaths=(
 		/Library/TeX/texbin
 	)
 	guipath="$(launchctl getenv PATH)"
@@ -447,19 +451,19 @@ prefix=/usr/local
 
 	if [ "${guipath#*$prefix/bin}" = "$guipath" ]; then
 		echo "New GUI PATH:"
-		echo "$(IFS=: ; echo "${lpaths[*]}"):$guipath"
-		sudo launchctl config user path "$(IFS=: ; echo "${lpaths[*]}"):$guipath"
+		guipath="$(IFS=: ; printf "${lpaths[*]}:${texpaths[*]}"):$guipath"
+		echo "$guipath"
+		sudo launchctl config user path "$guipath"
 	fi
 	if [[ $(head -n 1 /etc/paths) != "$prefix/bin" ]]; then
-		(IFS=$'\n'; echo "${lpaths[*]}" > "$TMPDIR/paths")
+		(IFS=$'\n'; printf "${lpaths[*]}\n" > "$TMPDIR/paths")
 		cat /etc/paths >> "$TMPDIR/paths"
-		if [[ $(head -n 1 "$TMPDIR/paths") = "$prefix/bin" ]]; then
-			echo "New /etc/paths:"
-			cat "$TMPDIR/paths"
-			sudo mv -v -f "$TMPDIR/paths" /etc || exit 1
-		else
-			die "Can't create temporary paths file"
-		fi
+		echo "New /etc/paths:"
+		cat "$TMPDIR/paths"
+		sudo mv -v -f "$TMPDIR/paths" /etc || exit 1
+	fi
+	if [ ! -e /etc/paths.d/TeX ]; then
+		echo "$(IFS=$'\n'; printf "${texpaths[*]}")\n" | sudo tee /etc/paths.d/TeX > /dev/null
 	fi
 
 #}}}
