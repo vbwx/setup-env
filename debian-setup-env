@@ -42,7 +42,7 @@ prefix=/usr/local
 	}
 
 	exist() {
-		type "$1" &> /dev/null
+		type -t "$1" &> /dev/null
 	}
 
 	islocal() {
