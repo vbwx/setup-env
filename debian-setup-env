@@ -226,6 +226,7 @@ inapps "VLC"                                 || brew cask install vlc
 	exist gimp         || install gimp
 	exist git          || install git
 	exist gnome-tweak-tool || install gnome-tweak-tool
+	exist gpick        || install gpick
 	exist gvim         || install vim-gtk
 	exist java         || install default-jre
 	# exist latex      || install texlive texlive-lang-german texlive-latex-extra
