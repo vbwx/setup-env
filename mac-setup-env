@@ -105,12 +105,18 @@ prefix=/usr/local
 	}
 
 	copy() {
-		cp -vf "$@" || exit 1
+		makedir "${@:(-1)}"
+		[ -e "${@:(-1)}/$(basename "$1")" ] || cp -Rvf "$@" || exit 1
 	}
 
 	link() {
 		ln -vs "$@" || exit 1
 	}
+
+	makedir() {
+		[ -d "$1" ] || mkdir -vp "$@" || exit 1
+	}
+
 
 #}}}
 
@@ -462,7 +468,7 @@ prefix=/usr/local
 		cat "$TMPDIR/paths"
 		sudo mv -v -f "$TMPDIR/paths" /etc || exit 1
 	fi
-	if [ ! -e /etc/paths.d/TeX ]; then
+	if ! grep -sq "texbin" /etc/paths /etc/paths.d/*; then
 		echo "$(IFS=$'\n'; printf "${texpaths[*]}")\n" | sudo tee /etc/paths.d/TeX > /dev/null
 	fi
 

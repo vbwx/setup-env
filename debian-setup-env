@@ -20,7 +20,7 @@ prefix=/usr/local
 
 	echo "PATH = $PATH"
 	[[ ${PATH#*$prefix/bin} = "$PATH" ]] && export PATH="$prefix/bin:$PATH"
-	[ -d "$prefix/bin" ] || makedir "$prefix/bin"
+	makedir "$prefix/bin"
 
 #}}}
 
@@ -50,9 +50,9 @@ prefix=/usr/local
 		exist "$1" && test "${bin#*$prefix}" != "$bin"
 	}
 
-#	inshare() {
-#		test -e "/usr/share/$1" || test -e "$prefix/share/$1"
-#	}
+	inshare() {
+		test -e "/usr/share/$1" || test -e "$prefix/share/$1"
+	}
 
 	inhome() {
 		test -e "$HOME/$1"
@@ -100,7 +100,8 @@ prefix=/usr/local
 	}
 
 	copy() {
-		cp -vf "$@" || exit 1
+		makedir "${@:(-1)}"
+		[ -e "${@:(-1)}/$(basename "$1")" ] || cp -Rvf "$@" || exit 1
 	}
 
 	link() {
@@ -108,7 +109,7 @@ prefix=/usr/local
 	}
 
 	makedir() {
-		mkdir -vp "$@" || exit 1
+		[ -d "$1" ] || mkdir -vp "$@" || exit 1
 	}
 
 #}}}
@@ -490,9 +491,8 @@ inapps "VLC"                                 || brew cask install vlc
 		copy "$file" "$HOME/.config/autostart"
 	fi
 	if ! inhome .config/autostart/nitrogen.desktop; then
-		exist nitrogen || diecmd nitrogen
 		copy "$setup/nitrogen.desktop" "$HOME/.config/autostart"
-		nitrogen &> /dev/null &
+		nitrogen &> /dev/null & || diecmd nitrogen
 	fi
 
 	#}}}
@@ -503,6 +503,12 @@ inapps "VLC"                                 || brew cask install vlc
 
 	file="/usr/share/applications/google-chrome.desktop"
 	modify "s/google-chrome[[:alnum:]\\-]*/& --enable-native-gpu-memory-buffers/g" $file
+
+	#}}}
+
+	#{{{ Login settings
+
+	inshare lightdm && copy "$setup/02_user.conf" "/usr/share/lightdm/lightdm.conf.d"
 
 	#}}}
 #}}}
@@ -538,7 +544,7 @@ inapps "VLC"                                 || brew cask install vlc
 		cat "$TMPDIR/paths"
 		sudo mv -v -f "$TMPDIR/paths" /etc || exit 1
 	fi
-	if [ ! -e /etc/paths.d/TeX ]; then
+	if ! grep -sq texbin /etc/paths /etc/paths.d/*; then
 		echo "$(IFS=$'\n'; printf "${texpaths[*]}")\n" | sudo tee /etc/paths.d/TeX > /dev/null
 	fi
 
