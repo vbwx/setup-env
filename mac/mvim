@@ -13,10 +13,6 @@
 # or by un-commenting and editing the following line:
 # VIM_APP_DIR=/Applications
 #
-# Instructions for Skim.app:
-# 1. Create a symbolic link to this script with the name *vimgoto
-# 2. Set the editor command in the Skim preferences to that path.
-# 3. Set the editor arguments to %line "%file"
 
 if [ -z "$VIM_APP_DIR" ]
 then
@@ -59,6 +55,11 @@ cmd=
 # GUI mode, implies forking
 case "$name" in m*|g*|rm*|rg*) gui=true ;; esac
 
+# Logged in over SSH? No gui.
+if [ -n "${SSH_CONNECTION}" ]; then
+	gui=
+fi
+
 # Restricted mode
 case "$name" in r*) opts="$opts -Z --noplugin";; esac
 
@@ -70,16 +71,13 @@ case "$name" in
 	*view)
 		opts="$opts -R --noplugin"
 		;;
-	*ex)
-		opts="$opts -e"
-		;;
 	*man)
 		opts="$opts -R"
 		cmd="Man $1 $2 | silent only"
 		shift; shift
 		;;
 	vi)
-		opts="$opts --noplugin"
+		opts="--noplugin"
 		;;
 esac
 
@@ -92,13 +90,13 @@ if [ "$gui" ]; then
 	# terminal instead of the console log.
 	# But if you use open instead, you will need to fully qualify the
 	# path names for any filenames you specify, which is hard.
-	if [ "$cmd" ]; then
+	if [ -n "$cmd" ]; then
 		> /dev/null exec "$binary" -g $opts "+$cmd" ${1:+"$@"}
 	else
 		> /dev/null exec "$binary" -g $opts ${1:+"$@"}
 	fi
 else
-	if [ "$cmd" ]; then
+	if [ -n "$cmd" ]; then
 		exec "$binary" $opts "+$cmd" ${1:+"$@"}
 	else
 		exec "$binary" $opts ${1:+"$@"}
