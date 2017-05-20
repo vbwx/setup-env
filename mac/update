@@ -10,6 +10,7 @@ targets=(
 	nvm
 	pip
 	prezto
+	texlive
 	vim-plug
 )
 
@@ -72,6 +73,9 @@ for t in $*; do
 			;;
 		vim-plug)
 			vim +PlugUpgrade +PlugUpdate +qall
+			;;
+		texlive)
+			sudo tlmgr update --all
 			;;
 		help|--help)
 			help
