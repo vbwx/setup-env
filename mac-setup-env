@@ -96,7 +96,7 @@ prefix=/usr/local
 	exist wdiff            || install wdiff
 	exist xz               || install xz
 
-	[[ $(type -P python) = "$prefix/bin/python" ]] && brew unlink python
+	poured python && brew unlink python
 
 	#}}}
 
