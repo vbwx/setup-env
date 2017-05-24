@@ -1,5 +1,3 @@
-#!/bin/bash
-
 die() {
 	>&2 echo -e "\n$*!"
 	exit 1

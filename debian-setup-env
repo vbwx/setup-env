@@ -10,9 +10,11 @@ prefix=/usr/local
 
 	dist="$(lsb_release -c | cut -f 2)"
 	setup="$(dirname "$0")/debian"
+	common="$(dirname "$0")/common"
 	cfg="$HOME/.config/dotfiles"
 
-	source "$setup/functions.bash"
+	source "$setup/functions.sh"
+	source "$1"
 
 	export TMPDIR="${TMPDIR:-/tmp}"
 	export RBENV_ROOT="$prefix/rbenv"
@@ -215,26 +217,11 @@ inapps "VLC"                                 || brew cask install vlc
 #{{{ Ruby
 
 	echo ">> Ruby"
-
-	exist rbenv || diecmd rbenv
-	eval "$(rbenv init -)"
-
-	if ! islocal ruby; then
-		ver="$(rbenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')"
-		[ "$ver" ] || die "Can't fetch latest Ruby version"
-		rbenv install "$ver" || die "Can't install Ruby"
-		rbenv global "$ver"
-	fi
+	source "$common/ruby.sh"
 
 	#{{{ Gems
 
 	echo ">> Ruby gems"
-
-	exist gem       || diecmd gem
-	islocal gem     || die "rbenv doesn't seem to be active"
-	exist compass   || gem install -N compass
-	exist sass      || gem install -N sass sass-globbing
-	exist scss-lint || gem install -N scss_lint
 
 	#}}}
 #}}}
@@ -242,27 +229,11 @@ inapps "VLC"                                 || brew cask install vlc
 #{{{ Perl
 
 	echo ">> Perl"
-
-	if ! exist perlbrew; then
-		download https://install.perlbrew.pl "$TMPDIR/perlbrew.sh"
-		rundel bash "$TMPDIR/perlbrew.sh"
-	fi
-	exist perlbrew || source "$PERLBREW_ROOT/etc/bashrc" || diecmd perlbrew
-
-
-	if ! islocal perl; then
-		perlbrew install -n stable || die "Can't install Perl"
-		ver="$(perlbrew list | perl -ne '/perl-[\d.]+/; print $&; $& and exit;')"
-		[ "$ver" ] || die "Can't find out installed Perl version"
-		perlbrew alias create perl-"$ver" default && perlbrew switch default
-	fi
+	source "$common/perl.sh"
 
 	#{{{ Modules
 
 	echo ">> Perl modules"
-
-	exist cpan   || diecmd cpan
-	islocal cpan || die "perlbrew doesn't seem to be active"
 
 	#}}}
 #}}}
@@ -317,9 +288,7 @@ inapps "VLC"                                 || brew cask install vlc
 	download http://ftp.vim.org/pub/vim/runtime/spell/de.utf-8.spl "$HOME/.vim/spell/de.utf-8.spl"
 	download https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim "$HOME/.vim/autoload/plug.vim"
 
-	if ! inhome .vim/plugged; then
-		vim -c PlugInstall -c q
-	fi
+	inhome .vim/plugged || vim -c PlugInstall -c q
 
 #}}}
 
