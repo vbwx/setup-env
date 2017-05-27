@@ -1,5 +1,3 @@
-#!/bin/bash
-
 die() {
 	>&2 echo -e "\n$*!"
 	exit 1
@@ -28,6 +26,22 @@ inshare() {
 	test -e "/usr/share/$1" || test -e "$prefix/share/$1"
 }
 
+poured() {
+	test -d "$prefix/Cellar/$1"
+}
+
+tapped() {
+	test -d "$prefix/Library/Taps/$1"
+}
+
+inlibs() {
+	test -e "/Library/$1" -o -e "$HOME/Library/$1"
+}
+
+inapps() {
+	test -e "/Applications/$1.app" -o -e "$HOME/Applications/$1.app"
+}
+
 inhome() {
 	test -e "$HOME/$1"
 }
@@ -38,6 +52,11 @@ inlists() {
 
 install() {
 	apt-get -y install "$@"
+	brew install "$@"
+}
+
+installc() {
+	brew cask install "$@"
 }
 
 rundel() {
@@ -61,7 +80,6 @@ clone() {
 }
 
 download() {
-	echo "$1"
 	if [ $# -eq 1 ]; then
 		curl -fsSL "$1" || warn "Can't download $1"
 	else

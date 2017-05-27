@@ -1,5 +1,0 @@
-#!/bin/bash
-
-prefix=/usr/local
-
-rm -rf "$prefix/Caskroom/mactex"
