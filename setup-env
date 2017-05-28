@@ -5,7 +5,6 @@
 	set +o histexpand -o errexit -o nounset -o pipefail
 	shopt -s extglob
 
-	dist="$(lsb_release -c | cut -f 2)"
 	setup="$(dirname "$0")/debian"
 	setup="$(dirname "$0")/mac"
 	common="$(dirname "$0")/common"
@@ -13,6 +12,17 @@
 	source "$common/functions.sh"
 	source "$common/config.sh"
 	source "$1"
+
+	dist="$(uname | tr "[:upper:]" "[:lower:]")"
+	if [[ $dist == "linux" ]]; then
+		if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
+			dist="$(lsb_release -i | cut -d: -f2 | sed s/'^\t'//)"
+		else
+			dist="$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v "lsb" | cut -d'/' -f3 | cut -d'-' -f1 | cut -d'_' -f1)"
+		fi
+	elif [[ $dist == "darwin" ]]; then
+		dist="macos"
+	fi
 
 	echo "PATH = $PATH"
 	[[ ${PATH#*$prefix/bin} = "$PATH" ]] && export PATH="$prefix/bin:$PATH"
@@ -144,7 +154,7 @@
 	exist apt-get || diecmd apt
 
 	if ! inlists download.virtualbox.org; then
-		echo "deb http://download.virtualbox.org/virtualbox/debian $dist contrib" \
+		echo "deb http://download.virtualbox.org/virtualbox/debian $(lsb_release -c | cut -f 2) contrib" \
 			>> /etc/apt/sources.list.d/oracle.list
 		download https://www.virtualbox.org/download/oracle_vbox_2016.asc | apt-key add - || warn "Can't add public key oracle_vbox_2016.asc"
 		download https://www.virtualbox.org/download/oracle_vbox.asc | apt-key add - || warn "Can't add public key oracle_vbox.asc"
