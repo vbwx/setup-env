@@ -160,6 +160,7 @@
 		download https://www.virtualbox.org/download/oracle_vbox.asc | apt-key add - || warn "Can't add public key oracle_vbox.asc"
 	fi
 
+	inlists gerardpuig || add-apt-repository ppa:gerardpuig/ppa
 	inlists rabbitvcs || add-apt-repository ppa:rabbitvcs/ppa
 	inlists universe || add-apt-repository universe
 	inlists zeal-developers || add-apt-repository ppa:zeal-developers/ppa
@@ -178,9 +179,9 @@
 	exist dconf-editor || install dconf-editor
 	exist dkms         || install dkms
 	exist dropbox      || install dropbox
+	exist geary        || install geary
 	exist gimp         || install gimp
 	exist git          || install git
-	exist gnome-tweak-tool || install gnome-tweak-tool
 	exist gpick        || install gpick
 	exist gvim         || install vim-gtk
 	exist java         || install default-jre
@@ -192,9 +193,12 @@
 	exist rename       || install rename
 	exist rabbitvcs    || install rabbitvcs-nautilus rabbitvcs-cli
 	exist shellcheck   || install shellcheck
+	exist shutter      || install shutter
 	exist svn          || install subversion
 	exist tree         || install tree
+	exist ubuntu-cleaner || install ubuntu-cleaner
 	exist virtualbox   || install virtualbox-5.1
+	exist vlc          || install vlc
 	exist zeal         || install zeal
 	exist zsh          || install zsh
 
