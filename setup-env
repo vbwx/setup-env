@@ -5,8 +5,8 @@
 	set +o histexpand -o errexit -o nounset -o pipefail
 	shopt -s extglob
 
-	setup="$(dirname "$0")/debian"
-	setup="$(dirname "$0")/mac"
+	setup="$(dirname "$0")/ubuntu"
+	setup="$(dirname "$0")/macos"
 	common="$(dirname "$0")/common"
 
 	source "$common/functions.sh"
