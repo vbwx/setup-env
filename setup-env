@@ -13,6 +13,8 @@
 	source "$common/config.sh"
 	source "$1"
 
+	declare -x TMPDIR RBENV_ROOT PERLBREW_ROOT PYENV_ROOT NVM_DIR
+
 	dist="$(uname | tr "[:upper:]" "[:lower:]")"
 	if [[ $dist == "linux" ]]; then
 		if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
@@ -25,7 +27,7 @@
 	fi
 
 	echo "PATH = $PATH"
-	[[ ${PATH#*$prefix/bin} = "$PATH" ]] && export PATH="$prefix/bin:$PATH"
+	[[ ${PATH#*$prefix/bin} = "$PATH" ]] && PATH="$prefix/bin:$PATH"
 	makedir "$prefix/bin"
 
 #}}}
