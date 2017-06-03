@@ -11,7 +11,7 @@ targets=(
 	pip
 	prezto
 	texlive
-	vim-plug
+	vim
 )
 
 function help {
@@ -71,8 +71,8 @@ for t in $*; do
 			gem update -N
 			gem cleanup
 			;;
-		vim-plug)
-			vim +PlugUpgrade +PlugUpdate +qall
+		vim)
+			[ -f "$HOME/.vim/autoload/plug.vim" ] && vim +PlugUpgrade +PlugUpdate +qall
 			;;
 		texlive)
 			sudo tlmgr update --all
