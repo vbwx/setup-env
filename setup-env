@@ -193,7 +193,7 @@
 	exist libtoolize   || install libtool
 	exist mount.exfat  || install exfat-fuse exfat-utils
 	exist nitrogen     || install nitrogen
-	exist pdfmod       || install pdfmod
+	exist pdfchain     || install pdfchain
 	exist pdftk        || install pdftk
 	exist rename       || install rename
 	exist rabbitvcs    || install rabbitvcs-nautilus rabbitvcs-cli
