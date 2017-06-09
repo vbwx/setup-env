@@ -263,49 +263,7 @@
 #{{{ Vim
 
 	echo ">> Vim"
-
-	[ -f "$setup/vim" ] || die "Can't find vim script"
-
-	islocal vim      || copy "$setup/vim" $prefix/bin
-	islocal vi       || link $prefix/bin/vim $prefix/bin/vi
-	islocal gvim     || link $prefix/bin/vim $prefix/bin/gvim
-	islocal rvim     || link $prefix/bin/vim $prefix/bin/rvim
-	islocal rgvim    || link $prefix/bin/vim $prefix/bin/rgvim
-	islocal view     || link $prefix/bin/vim $prefix/bin/view
-	islocal gview    || link $prefix/bin/vim $prefix/bin/gview
-	islocal vimdiff  || link $prefix/bin/vim $prefix/bin/vimdiff
-	islocal gvimdiff || link $prefix/bin/vim $prefix/bin/gvimdiff
-	islocal viman    || link $prefix/bin/vim $prefix/bin/viman
-	islocal gviman   || link $prefix/bin/vim $prefix/bin/gviman
-
-	echo ">> MacVim"
-
-	[ -r "$setup/mvim" ] || die "Can't find mvim script"
-	diff "$setup/mvim" $prefix/bin/mvim &> /dev/null || copy "$setup/mvim" $prefix/bin
-
-	islocal vi       || link $prefix/bin/mvim $prefix/bin/vi
-	islocal vim      || link $prefix/bin/mvim $prefix/bin/vim
-	islocal gvim     || link $prefix/bin/mvim $prefix/bin/gvim
-	islocal rvim     || link $prefix/bin/mvim $prefix/bin/rvim
-	islocal rmvim    || link $prefix/bin/mvim $prefix/bin/rmvim
-	islocal rgvim    || link $prefix/bin/mvim $prefix/bin/rgvim
-	islocal view     || link $prefix/bin/mvim $prefix/bin/view
-	islocal gview    || link $prefix/bin/mvim $prefix/bin/gview
-	islocal mview    || link $prefix/bin/mvim $prefix/bin/mview
-	islocal vimdiff  || link $prefix/bin/mvim $prefix/bin/vimdiff
-	islocal gvimdiff || link $prefix/bin/mvim $prefix/bin/gvimdiff
-	islocal mvimdiff || link $prefix/bin/mvim $prefix/bin/mvimdiff
-	islocal viman    || link $prefix/bin/mvim $prefix/bin/viman
-	islocal mviman   || link $prefix/bin/mvim $prefix/bin/mviman
-	islocal gviman   || link $prefix/bin/mvim $prefix/bin/gviman
-	islocal vim || diecmd vim
-
-	download http://ftp.vim.org/pub/vim/runtime/spell/de.utf-8.spl "$HOME/.vim/spell/de.utf-8.spl"
-
-	if ! inhome .vim/autoload/plug.vim; then
-		download https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim "$HOME/.vim/autoload/plug.vim"
-		vim -c PlugInstall -c q
-	fi
+	source "$setup/vim.sh"
 
 #}}}
 
@@ -319,33 +277,7 @@
 #{{{ Base16
 
 	echo ">> Base16"
-
-	_base16_linux() {
-		for s in color-scripts/*-256.sh; do
-			echo "${s/color-scripts\//}"
-			sed -i -e "s/\"base 16 /\"/i" -e "s/ 256\"/\"/" "$s"
-			bash "$s"
-		done
-	}
-
-	if ! dconf dump /org/gnome/terminal/legacy/profiles:/ | grep -qi harmonic16; then
-		clone https://github.com/aaron-williamson/base16-gnome-terminal.git "$TMPDIR/base16-terminal"
-		rundel "$TMPDIR/base16-terminal" _base16_linux
-	fi
-
-	echo ">> Base16 Mac"
-
-	_base16_mac() {
-		for p in profiles/*.terminal; do
-			xattr -d com.apple.quarantine "$p"
-			open "$p"
-		done
-	}
-
-	if ! plutil -p "$HOME/Library/Preferences/com.apple.Terminal.plist" | grep -qi harmonic16; then
-		clone https://github.com/vbwx/base16-terminal-app.git "$TMPDIR/base16-terminal"
-		rundel "$TMPDIR/base16-terminal" _base16_mac
-	fi
+	source "$setup/base16.sh"
 
 #}}}
 
@@ -414,27 +346,14 @@
 #{{{ PATH for all apps
 
 	echo ">> PATH for all apps"
-
-	lpaths=(
-		$prefix/bin
-		$prefix/sbin
-		$prefix/perlbrew/perls/default/bin
-		$prefix/pyenv/shims
-		$prefix/rbenv/shims
-		$prefix/node/bin
-	)
-	texpaths=(
-		/Library/TeX/texbin
-	)
-
+	source "$setup/path.sh"
 
 #}}}
 
 #{{{ Cleanup
 
 	echo ">> Cleanup"
-
-	rm -rf "$prefix/Caskroom/mactex"
+	source "$setup/cleanup.sh"
 
 #}}}
 
