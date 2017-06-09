@@ -3,14 +3,12 @@ die() {
 	exit 1
 }
 
-diecmd() {
-	>&2 echo -e "\nCommand not found: $1"
-	>&2 echo "Open a new shell and run this script again to continue with the setup."
-	exit 127
-}
-
 warn() {
 	>&2 echo -e "\n$*!\n"
+}
+
+isroot() {
+	test -w /etc
 }
 
 exist() {

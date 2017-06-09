@@ -1,11 +1,22 @@
-environment=(
+env=(
 	perl
 	python
 	ruby
+	php
+	node
+	powerline
+	prezto
 )
+darwin_env=(
+	homebrew
+)
+linux_env=()
+ubuntu_env=()
 
-perl_version=...
-ruby_version=...
+perl_ver=...
+ruby_ver=...
+python_ver=...
+node_ver=...
 
 python_packages=()
 ruby_gems=(
@@ -15,4 +26,19 @@ ruby_gems=(
 	scss_lint
 )
 perl_modules=()
+node_packages=(
+	coffee-script
+	coffeelint
+	commitizen
+	eslint
+	grunt-cli
+	gulp
+	instant-markdown-d
+	js-beautify
+	jsctags
+	marked
+	typescript
+	yo
+)
 
+brew_taps=(caskroom/cask)

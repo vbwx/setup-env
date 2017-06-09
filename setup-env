@@ -5,26 +5,28 @@
 	set +o histexpand -o errexit -o nounset -o pipefail
 	shopt -s extglob
 
-	setup="$(dirname "$0")/ubuntu"
-	setup="$(dirname "$0")/macos"
-	common="$(dirname "$0")/common"
-
-	source "$common/functions.sh"
-	source "$common/config.sh"
-	source "$1"
-
 	declare -x TMPDIR RBENV_ROOT PERLBREW_ROOT PYENV_ROOT NVM_DIR
 
-	dist="$(uname | tr "[:upper:]" "[:lower:]")"
-	if [[ $dist == "linux" ]]; then
+	platform="$(uname | tr "[:upper:]" "[:lower:]")"
+	dist=""
+	if [[ $platform == "linux" ]]; then
 		if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
 			dist="$(lsb_release -i | cut -d: -f2 | sed s/'^\t'//)"
 		else
 			dist="$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v "lsb" | cut -d'/' -f3 | cut -d'-' -f1 | cut -d'_' -f1)"
 		fi
-	elif [[ $dist == "darwin" ]]; then
-		dist="macos"
+		distsetup="$(dirname "$0")/$dist"
 	fi
+
+	setup="$(dirname "$0")/$platform"
+	common="$(dirname "$0")/common"
+
+	source "$common/functions.sh"
+	source "$common/config.sh"
+	source "$setup/config.sh"
+	[[ $dist ]] && source "$distsetup/config.sh"
+
+	source "$1"
 
 	echo "PATH = $PATH"
 	[[ ${PATH#*$prefix/bin} = "$PATH" ]] && PATH="$prefix/bin:$PATH"
@@ -34,7 +36,7 @@
 
 #{{{ Check for root access
 
-# [ -w ... ]
+	isroot || die "Please run this script with sudo"
 
 #}}}
 
@@ -52,22 +54,13 @@
 #{{{ Xcode
 
 	echo ">> Xcode"
-
-	exist xcode-select || diecmd xcode-select
-	exist xcodebuild   || xcode-select --install
+	source "$setup/xcode.sh"
 
 #}}}
 
 #{{{ Homebrew
 
 	echo ">> Homebrew"
-
-	if ! exist brew; then
-		download https://raw.githubusercontent.com/Homebrew/install/master/install "$TMPDIR/homebrew.rb"
-		rundel /usr/bin/ruby "$TMPDIR/homebrew.rb"
-	fi
-
-	tapped caskroom || brew tap caskroom/cask
 
 	#{{{ Packages
 
@@ -228,39 +221,10 @@
 #{{{ Node.js
 
 	echo ">> Node.js"
-
-	if [ ! -f "$NVM_DIR/nvm.sh" ]; then
-		clone https://github.com/creationix/nvm.git $NVM_DIR && (
-			cd $NVM_DIR
-			git checkout "$(git describe --abbrev=0 --tags --match "v[0-9]*" origin)" || die "Can't install nvm"
-		)
-	fi
-	exist nvm || source "$NVM_DIR/nvm.sh" || diecmd nvm
-
-	if ! islocal node; then
-		nvm install node || die "Can't install Node"
-	fi
-	[ -e $prefix/node ] || link "$NVM_DIR/versions/node/$(nvm current)" $prefix/node
-
-	#{{{ Packages
+	source "$common/node.sh"
 
 	echo ">> Node packages"
 
-	exist npm                || diecmd npm
-	exist coffee             || npm install -g coffee-script
-	exist coffeelint         || npm install -g coffeelint
-	exist commitizen         || npm install -g commitizen
-	exist eslint             || npm install -g eslint
-	exist grunt              || npm install -g grunt-cli
-	exist gulp               || npm install -g gulp
-	exist instant-markdown-d || npm install -g instant-markdown-d
-	exist js-beautify        || npm install -g js-beautify
-	exist jsctags            || npm install -g jsctags
-	exist marked             || npm install -g marked
-	exist tsc                || npm install -g typescript
-	exist yo                 || npm install -g yo
-
-	#}}}
 #}}}
 
 #{{{ Ruby
@@ -268,11 +232,8 @@
 	echo ">> Ruby"
 	source "$common/ruby.sh"
 
-	#{{{ Gems
-
 	echo ">> Ruby gems"
 
-	#}}}
 #}}}
 
 #{{{ Perl
@@ -280,38 +241,22 @@
 	echo ">> Perl"
 	source "$common/perl.sh"
 
-	#{{{ Modules
-
 	echo ">> Perl modules"
-
-	#}}}
 #}}}
 
 #{{{ Python
 
 	echo ">> Python"
+	source "$common/python.sh"
 
-	exist pyenv || diecmd pyenv
-	eval "$(pyenv init -)"
-
-	if ! islocal python; then
-		ver="$(pyenv install --list | sort -nr | perl -ne 'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')"
-		[ "$ver" ] || die "Can't fetch latest Python version"
-		pyenv install "$ver" || die "Can't install Python"
-		CFLAGS="-I$(xcrun --show-sdk-path)/usr/include" pyenv install "$ver" || die "Can't install Python"
-		pyenv global "$ver"
-	fi
+	echo ">> Python packages"
 
 #}}}
 
 #{{{ PHP
 
 	echo ">> PHP"
-
-	if ! exist composer; then
-		download "https://getcomposer.org/installer" "$TMPDIR/composer.php"
-		rundel php "$TMPDIR/composer.php" --install-dir=$prefix/bin --filename=composer
-	fi
+	source "$common/php.sh"
 
 #}}}
 
@@ -367,17 +312,7 @@
 #{{{ Prezto
 
 	echo ">> Prezto"
-
-	clone --recursive https://github.com/vbwx/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
-	if [ ! -L "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
-		for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/!(README.md); do
-			link "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
-		done
-	fi
-
-	echo "SHELL = $SHELL"
-	[[ $SHELL = "/bin/zsh" ]] || chsh -s /bin/zsh
-	touch "$HOME/.hushlogin"
+	source "$common/prezto.sh"
 
 #}}}
 
@@ -417,13 +352,7 @@
 #{{{ Powerline fonts
 
 	echo ">> Powerline fonts"
-
-	font_path=.local/share/fonts
-	font_path=Library/Fonts
-	if ! inhome "$font_path/Hack-Regular.ttf"; then
-		clone https://github.com/powerline/fonts.git "$TMPDIR/powerline-fonts"
-		rundel "$TMPDIR/powerline-fonts" bash install.sh
-	fi
+	source "$common/powerline.sh"
 
 #}}}
 
@@ -497,25 +426,6 @@
 	texpaths=(
 		/Library/TeX/texbin
 	)
-	guipath="$(launchctl getenv PATH)"
-	echo "GUI PATH = $guipath"
-
-	if [ "${guipath#*$prefix/bin}" = "$guipath" ]; then
-		echo "New GUI PATH:"
-		guipath="$(IFS=: ; printf "${lpaths[*]}:${texpaths[*]}"):$guipath"
-		echo "$guipath"
-		sudo launchctl config user path "$guipath"
-	fi
-	if [[ $(head -n 1 /etc/paths) != "$prefix/bin" ]]; then
-		(IFS=$'\n'; printf "${lpaths[*]}\n" > "$TMPDIR/paths")
-		cat /etc/paths >> "$TMPDIR/paths"
-		echo "New /etc/paths:"
-		cat "$TMPDIR/paths"
-		sudo mv -v -f "$TMPDIR/paths" /etc || exit 1
-	fi
-	if ! grep -sq texbin /etc/paths /etc/paths.d/*; then
-		echo "$(IFS=$'\n'; printf "${texpaths[*]}")\n" | sudo tee /etc/paths.d/TeX > /dev/null
-	fi
 
 
 #}}}
