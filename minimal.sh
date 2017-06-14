@@ -1,18 +1,13 @@
-environment=(
+env=(
 	perl
 	python
 	ruby
 )
 
-perl_version=...
-ruby_version=...
+perl_ver=...
+ruby_ver=...
 
 python_packages=()
-ruby_gems=(
-	compass
-	sass
-	sass-globbing
-	scss_lint
-)
+ruby_gems=()
 perl_modules=()
 
