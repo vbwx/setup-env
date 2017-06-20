@@ -1,4 +1,4 @@
-_base16_mac() {
+function _base16_mac {
 	for p in profiles/*.terminal; do
 		xattr -d com.apple.quarantine "$p"
 		open "$p"

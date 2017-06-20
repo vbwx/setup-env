@@ -1,4 +1,4 @@
-_base16_linux() {
+function _base16_linux {
 	for s in color-scripts/*-256.sh; do
 		echo "${s/color-scripts\//}"
 		sed -i -e "s/\"base 16 /\"/i" -e "s/ 256\"/\"/" "$s"

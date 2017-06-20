@@ -1,31 +1,31 @@
-isroot() {
+function isroot {
 	true
 }
 
-poured() {
+function poured {
 	test -d "$prefix/Cellar/$1"
 }
 
-tapped() {
+function tapped {
 	test -d "$prefix/Library/Taps/$1"
 }
 
-inlibs() {
+function inlibs {
 	test -e "/Library/$1" -o -e "$HOME/Library/$1"
 }
 
-inapps() {
+function inapps {
 	test -e "/Applications/$1.app" -o -e "$HOME/Applications/$1.app"
 }
 
-install() {
+function install {
 	brew install "$@"
 }
 
-installc() {
+function installc {
 	brew cask install "$@"
 }
 
-modify() {
+function modify {
 	sed -i .bak -E "$1" "$2" || warn "Can't modify $2"
 }

@@ -1,26 +1,26 @@
-die() {
+function die {
 	>&2 printf "\n$*!\n"
 	exit 1
 }
 
-warn() {
+function warn {
 	>&2 printf "\n$*!\n\n"
 }
 
-exist() {
+function exist {
 	type -t "$1" > /dev/null
 }
 
-islocal() {
+function islocal {
 	bin="$(type -P "$1" 2> /dev/null)"
 	exist "$1" && [[ ${bin#*$prefix} != $bin ]]
 }
 
-inhome() {
+function inhome {
 	[[ -e "$HOME/$1" ]]
 }
 
-rundel() {
+function rundel {
 	if [[ -d $1 ]]; then
 		dir="$1"
 		shift
@@ -34,11 +34,11 @@ rundel() {
 	fi
 }
 
-clone() {
+function clone {
 	[[ -e "${@:(-1)}" ]] || git clone "$@" || warn "Can't clone" "${@:(-2):1}"
 }
 
-download() {
+function download {
 	if [[ $# -eq 1 ]]; then
 		curl -fsSL "$1" || warn "Can't download $1"
 	else
@@ -46,22 +46,22 @@ download() {
 	fi
 }
 
-copy() {
+function copy {
 	makedir "${@:(-1)}"
 	[[ -e "${@:(-1)}/$(basename "$1")" ]] || cp -Rvf "$@" || exit 1
 }
 
-link() {
+function link {
 	ln -vs "$@" || exit 1
 }
 
-makedir() {
+function makedir {
 	[[ -d $1 ]] || mkdir -vp "$@" || exit 1
 }
 
-rerun() {
+function rerun {
 	exec -c bash "$cwd/$script" "$@"
 }
 
-help() {
+function help {
 }

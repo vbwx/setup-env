@@ -1,8 +1,8 @@
-inlists() {
+function inlists {
 	grep -qi "$1" /etc/apt/sources.list /etc/apt/sources.list.d/*
 }
 
-install() {
+function install {
 	apt-get -y install "$@"
 }
 
