@@ -20,6 +20,9 @@
 
 	setup="$(dirname "$0")/$platform"
 	common="$(dirname "$0")/common"
+	script="setup-env"
+	cwd="$(dirname "$0")"
+	[[ ${cwd#*$script} == "$cwd" ]] && cwd="$(dirname "$1")"
 
 	source "$common/functions.sh"
 	source "$common/config.sh"
