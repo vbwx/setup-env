@@ -16,12 +16,17 @@
 			dist="$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v "lsb" | cut -d'/' -f3 | cut -d'-' -f1 | cut -d'_' -f1)"
 		fi
 		distsetup="$(dirname "$0")/$dist"
+		desktop="$DESKTOP_SESSION"
+		mapval desktop
+	elif [[ $platform == "darwin" ]]; then
+		desktop=aqua
 	fi
 
 	setup="$(dirname "$0")/$platform"
 	common="$(dirname "$0")/common"
 	script="setup-env"
 	cwd="$(dirname "$0")"
+	args=("$@")
 	[[ ${cwd#*$script} == "$cwd" ]] && cwd="$(dirname "$1")"
 
 	source "$common/functions.sh"
@@ -39,7 +44,7 @@
 
 #{{{ Check for root access
 
-	isroot || die "Please run this script with sudo"
+	isroot || rerun
 
 #}}}
 
