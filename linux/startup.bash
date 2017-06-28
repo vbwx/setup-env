@@ -1,0 +1,2 @@
+makedir "$prefix/bin"
+

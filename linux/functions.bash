@@ -10,3 +10,6 @@ function isroot {
 	[[ -w /etc ]]
 }
 
+function installapp {
+}
+

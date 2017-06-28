@@ -22,7 +22,7 @@ function install {
 	brew install "$@"
 }
 
-function installc {
+function installapp {
 	brew cask install "$@"
 }
 

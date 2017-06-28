@@ -88,28 +88,54 @@ function mapval {
 }
 
 function run {
-	# execute ubuntu/$1.bash, but not linux/$1.bash
+	local name
+	for name in "$dist/$desktop/$1" "$platform/$desktop/$1" \
+		"$dist/$1" "$platform/$1" "${2-common}/$1"; do
+		if [[ -f "$cwd/$name.bash" ]]; then
+			scope="$1"
+			echo ">> ${scope^}"
+			source "$cwd/$name.bash"
+			unset scope
+			return
+		fi
+	done
 }
 
 function load {
-	# execute linux/$1.bash and ubuntu/$1.bash
+	scope="$1"
+	local name
+	for name in "${2-common}/$1" "$platform/$1" "$dist/$1" \
+		"$platform/$desktop/$1" "$dist/$desktop/$1"; do
+		if [[ -f "$cwd/$name.bash" ]]; then
+			source "$cwd/$name.bash"
+		fi
+	done
+	unset scope
 }
 
-function getval {
+function var {
 	local name
 	for name in "${desktop}_${dist}_$1" "${desktop}_${platform}_$1" \
-		"${desktop}_$1" "${dist}_$1" "${platform}_$1"; do
+		"${dist}_$1" "${platform}_$1"; do
 		if [[ ${!name+1} ]]; then
 			printf "${!name}"
 			return
 		fi
 	done
-	[[ ${!1} ]] && printf "${!1}"
+	[[ ${!1-} ]] && printf "${!1}"
 }
 
-function getlist {
+function myvar {
+	if [[ ${scope-} ]]; then
+		var "${scope}_$1"
+	else
+		var "$1"
+	fi
+}
+
+function list {
 	local name str
-	for name in $1 "${platform}_$1" "${dist}_$1" "${desktop}_$1" \
+	for name in "$1" "${platform}_$1" "${dist}_$1" \
 		"${desktop}_${platform}_$1" "${desktop}_${dist}_$1"; do
 		if [[ ${!name+1} ]]; then
 			for str in "${!name[@]}"; do
@@ -119,14 +145,22 @@ function getlist {
 	done
 }
 
+function mylist {
+	if [[ ${scope-} ]]; then
+		list "${scope}_$1"
+	else
+		list "$1"
+	fi
+}
+
 function help {
 	cat <<-EOF
 	usage: $script CONFIG...
 	
-	Set up environment according to the currently used OS, desktop manager,
+	Set up your environment according to the currently used OS, desktop manager,
 	and CONFIG files.
 	
-	On macOS, some commands require elevated privileges, so you may have to
+	Some commands require elevated privileges, so you may have to
 	authenticate as administrator a few times.
 EOF
 }

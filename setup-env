@@ -4,8 +4,16 @@
 
 	set +o histexpand -o errexit -o nounset -o pipefail
 	shopt -s extglob
-
 	declare -x TMPDIR RBENV_ROOT PERLBREW_ROOT PYENV_ROOT NVM_DIR
+
+	script="setup-env"
+	cwd="$(dirname "$0")"
+	args=("$@")
+	[[ ${cwd#*$script} == "$cwd" ]] && cwd="$(dirname "$1")"
+
+	source "$cwd/common/functions.bash"
+
+	[[ $# -eq 0 ]] && die ""
 
 	platform="$(uname)"
 	platform="${platform,,}"
@@ -26,23 +34,20 @@
 		platform=bsd
 	fi
 
-	setup="$(dirname "$0")/$platform"
-	common="$(dirname "$0")/common"
-	script="setup-env"
-	cwd="$(dirname "$0")"
-	args=("$@")
-	[[ ${cwd#*$script} == "$cwd" ]] && cwd="$(dirname "$1")"
+	load functions .
+	load config
 
-	source "$common/functions.sh"
-	source "$common/config.sh"
-	source "$setup/config.sh"
-	[[ $dist ]] && source "$distsetup/config.sh"
+	for arg in "$@"; do
+		if [[ -f "$arg.conf" ]]; then
+			source "$arg.conf"
+		else
+			source "$arg"
+		fi
+	done
 
-	source "$1"
-
-	echo "PATH = $PATH"
 	[[ ${PATH#*$prefix/bin} = "$PATH" ]] && PATH="$prefix/bin:$PATH"
-	makedir "$prefix/bin"
+	
+	run startup
 
 #}}}
 
@@ -56,17 +61,12 @@
 
 	echo ">> Dotfiles"
 
-	if [ ! -d "$cfg" ]; then
-		clone https://github.com/vbwx/dotfiles.git "$cfg"
-		bash "$cfg/install"
-	fi
+	# TODO Custom git install config
 
-#}}}
-
-#{{{ Xcode
-
-	echo ">> Xcode"
-	source "$setup/xcode.sh"
+	#if [ ! -d "$cfg" ]; then
+	#	clone https://github.com/vbwx/dotfiles.git "$cfg"
+	#	bash "$cfg/install"
+	#fi
 
 #}}}
 
@@ -78,77 +78,11 @@
 
 	echo ">> Homebrew packages"
 
-	exist 7z               || install p7zip
-	exist ag               || install the_silver_searcher
-	exist automake         || install automake
-	poured bash-completion || install bash-completion
-	exist cmake            || install cmake
-	exist colordiff        || install colordiff
-	poured coreutils       || install coreutils
-	exist cowsay           || install cowsay
-	exist cscope           || install cscope
-	islocal ctags          || install ctags
-	exist fdupes           || install fdupes
-	exist ffmpeg           || install ffmpeg
-	exist fortune          || install fortune
-	exist fzf              || install fzf
-	islocal git            || install git
-	exist git-flow         || install git-flow
-	islocal gzip           || install homebrew/dupes/gzip
-	islocal less           || install homebrew/dupes/less
-	exist glibtoolize      || install libtool
-	poured libvo-aacenc    || install libvo-aacenc
-	poured libyaml         || install libyaml
-	exist lua              || install lua
-	poured msgpack         || install msgpack
-	exist pdftk            || install https://raw.githubusercontent.com/youtux/homebrew-binary/pdftk/pdftk.rb
-	islocal php            || install homebrew/php/php70
-	exist php-cs-fixer     || install homebrew/php/php-cs-fixer
-	exist pyenv            || install pyenv
-	exist rbenv            || install rbenv
-	poured readline        || install readline
-	exist rename           || install rename
-	islocal rsync          || install homebrew/dupes/rsync
-	exist shellcheck       || install shellcheck
-	islocal svn            || install subversion
-	exist tig              || install tig
-	exist tree             || install tree
-	exist wdiff            || install wdiff
-	exist xz               || install xz
-
-	poured python && brew unlink python
-
 	#}}}
 
 	#{{{ Casks
 
 	echo ">> Homebrew casks"
-
-	exist  java                                || installc java
-	exist  tex                                 || installc mactex
-	inapps AppCleaner                          || installc appcleaner
-	inapps Dropbox                             || installc dropbox
-	inapps Firefox                             || installc firefox
-	inapps GitHub\ Desktop                     || installc github-desktop
-	inapps Google\ Chrome                      || installc google-chrome
-	inapps HandBrake                           || installc handbrake
-	inapps MacVim                              || installc macvim
-	inapps MAMP/MAMP                           || installc mamp
-	inapps Platypus                            || installc platypus
-	inapps Skim                                || installc skim
-	inapps Skype                               || installc skype
-	inapps Suspicious\ Package                 || installc suspicious-package
-	inapps TeamViewer                          || installc teamviewer
-	inapps Things                              || installc things
-	inapps Transmission                        || installc transmission
-	inapps Transmit                            || installc transmit
-	inapps VirtualBox                          || installc virtualbox
-	inapps VLC                                 || installc vlc
-	inlibs QuickLook/QLColorCode.qlgenerator   || installc qlcolorcode
-	inlibs QuickLook/QLMarkdown.qlgenerator    || installc qlmarkdown
-	inlibs QuickLook/QuickLookCSV.qlgenerator  || installc quicklook-csv
-	inlibs QuickLook/QuickLookJSON.qlgenerator || installc quicklook-json
-	inlibs QuickLook/WebP.qlgenerator          || installc webpquicklook
 
 	#}}}
 #}}}
@@ -159,19 +93,13 @@
 
 	echo ">> APT repositories"
 
-	exist apt-get || diecmd apt
-
-	if ! inlists download.virtualbox.org; then
-		echo "deb http://download.virtualbox.org/virtualbox/debian $(lsb_release -c | cut -f 2) contrib" \
-			>> /etc/apt/sources.list.d/oracle.list
-		download https://www.virtualbox.org/download/oracle_vbox_2016.asc | apt-key add - || warn "Can't add public key oracle_vbox_2016.asc"
-		download https://www.virtualbox.org/download/oracle_vbox.asc | apt-key add - || warn "Can't add public key oracle_vbox.asc"
-	fi
-
-	inlists gerardpuig || add-apt-repository ppa:gerardpuig/ppa
-	inlists rabbitvcs || add-apt-repository ppa:rabbitvcs/ppa
-	inlists universe || add-apt-repository universe
-	inlists zeal-developers || add-apt-repository ppa:zeal-developers/ppa
+	# TODO Custom source/key config
+	#if ! inlists download.virtualbox.org; then
+	#	echo "deb http://download.virtualbox.org/virtualbox/debian "$dist_ver" contrib" \
+	#		>> /etc/apt/sources.list.d/oracle.list
+	#	download https://www.virtualbox.org/download/oracle_vbox_2016.asc | apt-key add - || warn "Can't add public key oracle_vbox_2016.asc"
+	#	download https://www.virtualbox.org/download/oracle_vbox.asc | apt-key add - || warn "Can't add public key oracle_vbox.asc"
+	#fi
 
 	#}}}
 
@@ -179,45 +107,11 @@
 
 	echo ">> APT packages"
 
-	exist 7z           || install p7zip
-	exist ag           || install silversearcher-ag
-	exist autoconf     || install autoconf
-	exist automake     || install automake
-	exist clipit       || install clipit
-	exist dconf-editor || install dconf-editor
-	exist dkms         || install dkms
-	exist dropbox      || install dropbox
-	exist geary        || install geary
-	exist gimp         || install gimp
-	exist git          || install git
-	exist gpick        || install gpick
-	exist gvim         || install vim-gtk
-	exist java         || install default-jre
-	# exist latex      || install texlive texlive-lang-german texlive-latex-extra
-	# exist latexmk    || install latexmk
-	exist libtoolize   || install libtool
-	exist mount.exfat  || install exfat-fuse exfat-utils
-	exist nitrogen     || install nitrogen
-	exist pdfchain     || install pdfchain
-	exist pdftk        || install pdftk
-	exist rename       || install rename
-	exist rabbitvcs    || install rabbitvcs-nautilus rabbitvcs-cli
-	exist shellcheck   || install shellcheck
-	exist shutter      || install shutter
-	exist svn          || install subversion
-	exist tree         || install tree
-	exist ubuntu-cleaner || install ubuntu-cleaner
-	exist virtualbox   || install virtualbox-5.1
-	exist vlc          || install vlc
-	exist zeal         || install zeal
-	exist zsh          || install zsh
-
-	if ! exist google-chrome; then
-		download https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb "$TMPDIR/google-chrome.deb"
-		rundel dpkg -i "$TMPDIR/google-chrome.deb"
-	fi
-
-	install -f
+	# TODO Custom installation config
+	#if ! exist google-chrome; then
+	#	download https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb "$TMPDIR/google-chrome.deb"
+	#	rundel dpkg -i "$TMPDIR/google-chrome.deb"
+	#fi
 
 	#}}}
 #}}}
@@ -226,146 +120,14 @@
 
 	echo ">> Shared files"
 
-	download "http://www.unicode.org/Public/UNIDATA/UnicodeData.txt" "$prefix/share/unicode/UnicodeData.txt"
-
-#}}}
-
-#{{{ Node.js
-
-	echo ">> Node.js"
-	source "$common/node.sh"
-
-	echo ">> Node packages"
-
-#}}}
-
-#{{{ Ruby
-
-	echo ">> Ruby"
-	source "$common/ruby.sh"
-
-	echo ">> Ruby gems"
-
-#}}}
-
-#{{{ Perl
-
-	echo ">> Perl"
-	source "$common/perl.sh"
-
-	echo ">> Perl modules"
-#}}}
-
-#{{{ Python
-
-	echo ">> Python"
-	source "$common/python.sh"
-
-	echo ">> Python packages"
-
-#}}}
-
-#{{{ PHP
-
-	echo ">> PHP"
-	source "$common/php.sh"
-
-#}}}
-
-#{{{ Vim
-
-	echo ">> Vim"
-	source "$setup/vim.sh"
-
-#}}}
-
-#{{{ Prezto
-
-	echo ">> Prezto"
-	source "$common/prezto.sh"
-
-#}}}
-
-#{{{ Base16
-
-	echo ">> Base16"
-	source "$setup/base16.sh"
-
-#}}}
-
-#{{{ Powerline fonts
-
-	echo ">> Powerline fonts"
-	source "$common/powerline.sh"
-
-#}}}
-
-#{{{ Distribution-specific setup
-
-	#{{{ Keyboard configuration
-
-	echo ">> Keyboard configuration"
-
-	# Map [Shift]+[Backspace] to [Delete]
-	for file in pc inet us macintosh_vndr/apple macintosh_vndr/us; do
-		modify "s/backspace,[[:space:]]*backspace/BackSpace, Delete/ig" /usr/share/X11/xkb/symbols/$file
-	done
-
-	gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us+mac'), ('xkb', 'de')]"
-	gsettings set org.gnome.desktop.input-sources xkb-options "['lv3:ralt_switch', 'ctrl:swap_lwin_lctl', 'ctrl:swap_rwin_rctl', 'terminate:ctrl_alt_bksp']"
-
-	#}}}
-
-	#{{{ Startup applications
-
-	echo ">> Startup applications"
-
-	if ! inhome .config/autostart/mouse-speed.desktop; then
-		[ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin"
-		xinput --list --short
-		echo -n "IDs of your pointing devices (space-separated): "
-		read ids
-		file="$setup/mouse-speed"
-		modify "s/\$ids/$ids/" "$file"
-		copy "$file" "$HOME/.local/bin"
-		file="$setup/mouse-speed.desktop"
-		modify "s/~\\//$HOME\\//" "$file"
-		copy "$file" "$HOME/.config/autostart"
-	fi
-	if ! inhome .config/autostart/nitrogen.desktop; then
-		copy "$setup/nitrogen.desktop" "$HOME/.config/autostart"
-		nitrogen &> /dev/null & || diecmd nitrogen
-	fi
-
-	#}}}
-
-	#{{{ Modify application shortcuts
-
-	echo ">> Modify application shortcuts"
-
-	file="/usr/share/applications/google-chrome.desktop"
-	modify "s/google-chrome[[:alnum:]\\-]*/& --enable-native-gpu-memory-buffers/g" $file
-
-	#}}}
-
-	#{{{ Login settings
-
-	inshare lightdm && copy "$setup/02_user.conf" "/usr/share/lightdm/lightdm.conf.d"
-
-	#}}}
-#}}}
-
-#{{{ PATH for all apps
-
-	echo ">> PATH for all apps"
-	source "$setup/path.sh"
+	# TODO Custom file download config
 
 #}}}
 
 #{{{ Cleanup
 
 	echo ">> Cleanup"
-	source "$setup/cleanup.sh"
+	[[ $(var skip_cleanup) ]] || run cleanup
 
 #}}}
 
