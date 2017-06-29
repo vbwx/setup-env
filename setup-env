@@ -6,6 +6,7 @@
 	shopt -s extglob
 	declare -x TMPDIR RBENV_ROOT PERLBREW_ROOT PYENV_ROOT NVM_DIR
 
+	IFS=$'\n'
 	script="setup-env"
 	cwd="$(dirname "$0")"
 	args=("$@")
@@ -22,7 +23,7 @@
 		if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
 			dist="$(lsb_release -i | cut -d: -f2 | sed 's/^\t//')"
 		else
-			dist="$(ls -d '/etc/[A-Za-z]*[_-][rv]e[lr]*' | grep -v lsb | cut -d/ -f3 | cut -d- -f1 | cut -d_ -f1)"
+			dist="$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v lsb | cut -d/ -f3 | cut -d- -f1 | cut -d_ -f1)"
 		fi
 		distsetup="$(dirname "$0")/$dist"
 		desktop="$DESKTOP_SESSION"

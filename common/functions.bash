@@ -1,10 +1,18 @@
+function println {
+	printf "%s\n" "$*"
+}
+
+function print {
+	printf "%s" "$*"
+}
+
 function die {
-	>&2 printf "\n$*!\n"
+	>&2 printf "\n%s!\n" "$*"
 	exit 1
 }
 
 function warn {
-	>&2 printf "\n$*!\n\n"
+	>&2 printf "\n%s!\n\n" "$*"
 }
 
 function exist {
@@ -118,11 +126,11 @@ function var {
 	for name in "${desktop}_${dist}_$1" "${desktop}_${platform}_$1" \
 		"${dist}_$1" "${platform}_$1"; do
 		if [[ ${!name+1} ]]; then
-			printf "${!name}"
+			print "${!name}"
 			return
 		fi
 	done
-	[[ ${!1-} ]] && printf "${!1}"
+	[[ ${!1-} ]] && print "${!1}"
 }
 
 function myvar {
@@ -135,11 +143,12 @@ function myvar {
 
 function list {
 	local name str
+	[[ $# -eq 0 ]] && return
 	for name in "$1" "${platform}_$1" "${dist}_$1" \
 		"${desktop}_${platform}_$1" "${desktop}_${dist}_$1"; do
 		if [[ ${!name+1} ]]; then
 			for str in "${!name[@]}"; do
-				printf "$str\n"
+				println "${str//$'\n'/ }"
 			done
 		fi
 	done
@@ -151,6 +160,18 @@ function mylist {
 	else
 		list "$1"
 	fi
+}
+
+function explode {
+	[[ $# -eq 0 ]] && return
+	set -f
+	for str in "$@"; do
+		str="${str//,/$'\n'}"
+		str="${str#"${str%%[![:space:]]*}"}"
+		str="${str%"${str##*[![:space:]]}"}"
+		println "$str"
+	done
+	set +f
 }
 
 function help {
