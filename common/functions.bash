@@ -162,27 +162,39 @@ function mylist {
 	fi
 }
 
+function trim {
+	[[ $# -eq 0 ]] && return
+	local str
+	for str in "$@"; do
+		str="${str#"${str%%[![:space:]]*}"}"
+		str="${str%"${str##*[![:space:]]}"}"
+		if [[ $str ]]; then
+			if [[ $# -eq 1 ]]; then
+				print "$str"
+			else
+				println "$str"
+			fi
+		fi
+	done
+}
+
 function explode {
 	[[ $# -eq 0 ]] && return
 	set -f
-	for str in "$@"; do
-		str="${str//,/$'\n'}"
-		str="${str#"${str%%[![:space:]]*}"}"
-		str="${str%"${str##*[![:space:]]}"}"
-		println "$str"
-	done
+	local items
+	items=(${1//${2-,}/$'\n'})
+	print "$(trim "${items[@]}")"
 	set +f
 }
 
 function help {
 	cat <<-EOF
 	usage: $script CONFIG...
-	
+
 	Set up your environment according to the currently used OS, desktop manager,
 	and CONFIG files.
-	
+
 	Some commands require elevated privileges, so you may have to
 	authenticate as administrator a few times.
 EOF
 }
-
