@@ -98,7 +98,7 @@ function mapval {
 function run {
 	local name
 	for name in "$dist/$desktop/$1" "$platform/$desktop/$1" \
-		"$dist/$1" "$platform/$1" "${2-common}/$1"; do
+		"$dist/$1" "$platform/$1" "${2-undefined}/$1"; do
 		if [[ -f "$cwd/$name.bash" ]]; then
 			scope="$1"
 			echo ">> ${scope^}"
@@ -112,7 +112,7 @@ function run {
 function load {
 	scope="$1"
 	local name
-	for name in "${2-common}/$1" "$platform/$1" "$dist/$1" \
+	for name in "${2-undefined}/$1" "$platform/$1" "$dist/$1" \
 		"$platform/$desktop/$1" "$dist/$desktop/$1"; do
 		if [[ -f "$cwd/$name.bash" ]]; then
 			source "$cwd/$name.bash"

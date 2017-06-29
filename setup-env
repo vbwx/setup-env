@@ -35,8 +35,8 @@
 		platform=bsd
 	fi
 
-	load functions .
-	load config
+	load functions
+	load config common
 
 	for arg in "$@"; do
 		if [[ -f "$arg.conf" ]]; then
@@ -61,13 +61,6 @@
 #{{{ Dotfiles
 
 	echo ">> Dotfiles"
-
-	# TODO Custom git install config
-
-	#if [ ! -d "$cfg" ]; then
-	#	clone https://github.com/vbwx/dotfiles.git "$cfg"
-	#	bash "$cfg/install"
-	#fi
 
 #}}}
 
@@ -108,20 +101,12 @@
 
 	echo ">> APT packages"
 
-	# TODO Custom installation config
-	#if ! exist google-chrome; then
-	#	download https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb "$TMPDIR/google-chrome.deb"
-	#	rundel dpkg -i "$TMPDIR/google-chrome.deb"
-	#fi
-
 	#}}}
 #}}}
 
 #{{{ Shared files
 
 	echo ">> Shared files"
-
-	# TODO Custom file download config
 
 #}}}
 
