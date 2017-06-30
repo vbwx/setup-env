@@ -163,7 +163,6 @@ function mylist {
 }
 
 function trim {
-	[[ $# -eq 0 ]] && return
 	local str
 	for str in "$@"; do
 		str="${str#"${str%%[![:space:]]*}"}"
