@@ -181,7 +181,7 @@ function explode {
 	[[ $# -eq 0 ]] && return
 	set -f
 	local items
-	items=(${1//${2-,}/$'\n'})
+	items=(${1//${2-;}/$'\n'})
 	print "$(trim "${items[@]}")"
 	set +f
 }
