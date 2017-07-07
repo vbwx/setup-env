@@ -139,10 +139,10 @@ function var {
 		"${dist}_$1" "${platform}_$1"; do
 		if [[ ${!name+1} ]]; then
 			print "${!name}"
-			return
+			return 0
 		fi
 	done
-	[[ ${!1-} ]] && print "${!1}"
+	[[ ${!1+1} ]] && print "${!1}"
 }
 
 function myvar {
