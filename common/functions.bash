@@ -100,7 +100,7 @@ function run {
 		"$platform/$dist/$1" "$platform/$1" "${2-undefined}/$1"; do
 		if [[ -f "$cwd/$name.bash" ]]; then
 			scope="$1"
-			echo ">> ${scope^}"
+			println ">> ${scope^}"
 			source "$cwd/$name.bash"
 			unset scope
 			return
@@ -119,6 +119,18 @@ function load {
 		fi
 	done
 	unset scope
+}
+
+function res {
+	local name
+	for name in "$platform/$dist/$desktop/res/$1" "$platform/$desktop/res/$1" \
+		"$platform/$dist/res/$1" "$platform/res/$1" "${2-undefined}/res/$1"; do
+		if [[ -e "$cwd/$name" ]]; then
+			print "$cwd/$name"
+			return 0
+		fi
+	done
+	return 1
 }
 
 function var {
