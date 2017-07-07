@@ -82,23 +82,22 @@ function rerun {
 }
 
 function mapval {
-	set -f
 	if [[ ${1-} && ${!1+1} ]]; then
 		local map str mapvar=$1_map
 		if [[ ${!mapvar-} ]]; then
 			for str in "${!mapvar[@]}"; do
-				IFS="=" eval 'map=($str)'
+				map=($(explode "$str"))
 				[[ ${map[1]+1} && ${map[0]} == ${!1} ]] && declare -g $1="${map[1]}"
 			done
 		fi
 	fi
-	set +f
 }
 
 function run {
 	local name
-	for name in "$dist/$desktop/$1" "$platform/$desktop/$1" \
-		"$dist/$1" "$platform/$1" "${2-undefined}/$1"; do
+	set +f
+	for name in "$platform/$dist/$desktop/$1" "$platform/$desktop/$1" \
+		"$platform/$dist/$1" "$platform/$1" "${2-undefined}/$1"; do
 		if [[ -f "$cwd/$name.bash" ]]; then
 			scope="$1"
 			echo ">> ${scope^}"
@@ -107,13 +106,14 @@ function run {
 			return
 		fi
 	done
+	set -f
 }
 
 function load {
 	scope="$1"
 	local name
-	for name in "${2-undefined}/$1" "$platform/$1" "$dist/$1" \
-		"$platform/$desktop/$1" "$dist/$desktop/$1"; do
+	for name in "${2-undefined}/$1" "$platform/$1" "$platform/$dist/$1" \
+		"$platform/$desktop/$1" "$platform/$dist/$desktop/$1"; do
 		if [[ -f "$cwd/$name.bash" ]]; then
 			source "$cwd/$name.bash"
 		fi
@@ -179,11 +179,9 @@ function trim {
 
 function explode {
 	[[ $# -eq 0 ]] && return
-	set -f
 	local items
 	items=(${1//${2-;}/$'\n'})
 	print "$(trim "${items[@]}")"
-	set +f
 }
 
 function help {
@@ -196,4 +194,5 @@ function help {
 	Some commands require elevated privileges, so you may have to
 	authenticate as administrator a few times.
 EOF
+	exit
 }

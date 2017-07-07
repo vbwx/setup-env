@@ -1,121 +1,95 @@
 #!/bin/bash
 
-#{{{ Initialization
+set +o histexpand -o errexit -o nounset -o pipefail -o noglob
+shopt -s extglob
+declare -x TMPDIR RBENV_ROOT PERLBREW_ROOT PYENV_ROOT NVM_DIR
 
-	set +o histexpand -o errexit -o nounset -o pipefail
-	shopt -s extglob
-	declare -x TMPDIR RBENV_ROOT PERLBREW_ROOT PYENV_ROOT NVM_DIR
+IFS=$'\n'
+script="setup-env"
+cwd="$(dirname "$0")"
+args=("$@")
+[[ ${cwd#*$script} == "$cwd" ]] && cwd="$(dirname "$1")"
 
-	IFS=$'\n'
-	script="setup-env"
-	cwd="$(dirname "$0")"
-	args=("$@")
-	[[ ${cwd#*$script} == "$cwd" ]] && cwd="$(dirname "$1")"
+source "$cwd/common/functions.bash"
 
-	source "$cwd/common/functions.bash"
+[[ $# -eq 0 ]] && die ""
 
-	[[ $# -eq 0 ]] && die ""
-
-	platform="$(uname)"
-	platform="${platform,,}"
-	dist=""
-	if [[ $platform == "linux" ]]; then
-		if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
-			dist="$(lsb_release -i | cut -d: -f2 | sed 's/^\t//')"
-		else
-			dist="$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v lsb | cut -d/ -f3 | cut -d- -f1 | cut -d_ -f1)"
-		fi
-		distsetup="$(dirname "$0")/$dist"
-		desktop="$DESKTOP_SESSION"
-		mapval desktop
-	elif [[ $platform == "darwin" ]]; then
-		desktop=aqua
-	elif [[ $platform == *bsd ]]; then
-		dist="$platform"
-		platform=bsd
+platform="$(uname)"
+platform="${platform,,}"
+dist=""
+desktop=""
+if [[ $platform == "linux" ]]; then
+	if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
+		dist="$(lsb_release -i | cut -d: -f2 | sed 's/^\t//')"
+	else
+		set +f
+		dist="$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v lsb | cut -d/ -f3 | cut -d- -f1 | cut -d_ -f1)"
+		set -f
 	fi
+	distsetup="$(dirname "$0")/$dist"
+	desktop="$DESKTOP_SESSION"
+	mapval desktop
+elif [[ $platform == *bsd ]]; then
+	dist="$platform"
+	platform=bsd
+	desktop="$DESKTOP_SESSION"
+fi
 
-	load functions
-	load config common
+load functions
+load config common
 
-	for arg in "$@"; do
+for arg in "$@"; do
+	case $arg in
+	(--help)
+		help
+		;;
+	(-s|--simulate)
+		simulate=1
+		;;
+	(-v|--verbose)
+		verbose=1
+		;;
+	(*)
 		if [[ -f "$arg.conf" ]]; then
 			source "$arg.conf"
 		else
 			source "$arg"
 		fi
-	done
+		;;
+	esac
+done
 
-	[[ ${PATH#*$prefix/bin} = "$PATH" ]] && PATH="$prefix/bin:$PATH"
-	
-	run startup
+[[ ${PATH#*$prefix/bin} = "$PATH" ]] && PATH="$prefix/bin:$PATH"
 
-#}}}
+run startup
 
-#{{{ Check for root access
+isroot || rerun
 
-	isroot || rerun
+echo ">> Dotfiles"
 
-#}}}
+echo ">> Homebrew"
 
-#{{{ Dotfiles
+echo ">> Homebrew packages"
 
-	echo ">> Dotfiles"
+echo ">> Homebrew casks"
 
-#}}}
+echo ">> APT repositories"
 
-#{{{ Homebrew
-
-	echo ">> Homebrew"
-
-	#{{{ Packages
-
-	echo ">> Homebrew packages"
-
-	#}}}
-
-	#{{{ Casks
-
-	echo ">> Homebrew casks"
-
-	#}}}
-#}}}
-
-#{{{ Apt
-
-	#{{{ Repositories
-
-	echo ">> APT repositories"
-
-	# TODO Custom source/key config
-	#if ! inlists download.virtualbox.org; then
-	#	echo "deb http://download.virtualbox.org/virtualbox/debian "$dist_ver" contrib" \
-	#		>> /etc/apt/sources.list.d/oracle.list
-	#	download https://www.virtualbox.org/download/oracle_vbox_2016.asc | apt-key add - || warn "Can't add public key oracle_vbox_2016.asc"
-	#	download https://www.virtualbox.org/download/oracle_vbox.asc | apt-key add - || warn "Can't add public key oracle_vbox.asc"
-	#fi
-
-	#}}}
-
-	#{{{ Packages
-
-	echo ">> APT packages"
-
-	#}}}
-#}}}
-
-#{{{ Shared files
-
-	echo ">> Shared files"
+#if ! inlists download.virtualbox.org; then
+#	echo "deb http://download.virtualbox.org/virtualbox/debian "$dist_ver" contrib" \
+#		>> /etc/apt/sources.list.d/oracle.list
+#	download https://www.virtualbox.org/download/oracle_vbox_2016.asc | apt-key add - || warn "Can't add public key oracle_vbox_2016.asc"
+#	download https://www.virtualbox.org/download/oracle_vbox.asc | apt-key add - || warn "Can't add public key oracle_vbox.asc"
+#fi
 
 #}}}
 
-#{{{ Cleanup
+echo ">> APT packages"
 
-	echo ">> Cleanup"
-	[[ $(var skip_cleanup) ]] || run cleanup
+echo ">> Shared files"
 
-#}}}
+echo ">> Cleanup"
+[[ $(var skip_cleanup) ]] || run cleanup
 
 echo ">> Done"
 
