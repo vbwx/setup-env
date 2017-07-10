@@ -56,21 +56,42 @@ function download {
 }
 
 function copy {
-	makedir "${@:(-1)}"
-	[[ -e "${@:(-1)}/$(basename "$1")" ]] || cp -Rvf "$@"
+	if [[ ${1-} ]]; then
+		makedir "${@:(-1)}"
+		[[ -e "${@:(-1)}/$(basename "$1")" ]] || cp -Rvf "$@"
+	fi
+}
+
+function difcopy {
+	if [[ -f ${1-} ]]; then
+		local file="${2-}"
+		if [[ -f $file ]]; then
+			file="$file/$(basename "$1")"
+			makedir "$2"
+		else
+			makedir "$(dirname "$2")"
+		fi
+		diff "$1" "$file" &> /dev/null || cp -vf "$@"
+	fi
 }
 
 function move {
-	makedir "${@:(-1)}"
-	[[ -e "${@:(-1)}/$(basename "$1")" ]] || mv -vf "$@"
+	if [[ ${1-} ]]; then
+		makedir "${@:(-1)}"
+		[[ -e "${@:(-1)}/$(basename "$1")" ]] || mv -vf "$@"
+	fi
 }
 
 function link {
-	ln -vs "$@"
+	if [[ ${1-} ]]; then
+		ln -vs "$@"
+	fi
 }
 
 function makedir {
-	[[ -d $1 ]] || mkdir -vp "$@"
+	if [[ ${1-} ]]; then
+		[[ -d $1 ]] || mkdir -vp "$@"
+	fi
 }
 
 function rerun {

@@ -1,5 +1,5 @@
-[ -r "$setup/mvim" ] || die "Can't find mvim script"
-diff "$setup/mvim" $prefix/bin/mvim &> /dev/null || copy "$setup/mvim" $prefix/bin
+[ -r "$(res mvim)" ] || die "Can't find mvim script"
+difcopy "$(res mvim)" $prefix/bin
 
 islocal vi       || link $prefix/bin/mvim $prefix/bin/vi
 islocal vim      || link $prefix/bin/mvim $prefix/bin/vim
