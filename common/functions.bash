@@ -163,35 +163,44 @@ function var {
 			return 0
 		fi
 	done
-	[[ ${!1+1} ]] && print "${!1}"
+	[[ ${!1+1} ]] && print "${!1}" || print "${2-}"
 }
 
 function myvar {
 	if [[ ${scope-} ]]; then
-		var "${scope}_$1"
+		var "${scope}_$1" "${2-}"
 	else
-		var "$1"
+		var "$1" "${2-}"
 	fi
 }
 
 function list {
-	local name str
+	local name str arg found=""
 	[[ $# -eq 0 ]] && return
 	for name in "$1" "${platform}_$1" "${dist}_$1" \
 		"${desktop}_${platform}_$1" "${desktop}_${dist}_$1"; do
 		if [[ ${!name+1} ]]; then
+			found=1
 			for str in "${!name[@]}"; do
 				println "${str//$'\n'/ }"
 			done
 		fi
 	done
+	if [[ ! $found ]]; then
+		shift
+		for arg in "$@"; do
+			println "$arg"
+		done
+	fi
 }
 
 function mylist {
+	local name="$1"
+	shift
 	if [[ ${scope-} ]]; then
-		list "${scope}_$1"
+		list "${scope}_$name" "$@"
 	else
-		list "$1"
+		list "$name" "$@"
 	fi
 }
 
