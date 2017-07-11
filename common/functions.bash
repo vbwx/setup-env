@@ -148,10 +148,17 @@ function res {
 		"$platform/$dist/res/$1" "$platform/res/$1" "${2-undefined}/res/$1"; do
 		if [[ -e "$cwd/$name" ]]; then
 			print "$cwd/$name"
-			return 0
+			return
 		fi
 	done
-	return 1
+}
+
+function respath {
+	local path
+	if [[ $(res "$@") ]]; then
+		path="$(res "$1.path" "${2-}")"
+		[[ -f $path ]] && cat "$path"
+	fi
 }
 
 function var {
@@ -160,7 +167,7 @@ function var {
 		"${dist}_$1" "${platform}_$1"; do
 		if [[ ${!name+1} ]]; then
 			print "${!name}"
-			return 0
+			return
 		fi
 	done
 	[[ ${!1+1} ]] && print "${!1}" || print "${2-}"
