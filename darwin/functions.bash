@@ -25,7 +25,3 @@ function install {
 function installapp {
 	brew cask install "$@"
 }
-
-function modify {
-	sed -i .bak -E "$1" "$2" || warn "Can't modify $2"
-}

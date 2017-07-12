@@ -157,7 +157,7 @@ function respath {
 	local path
 	if [[ $(res "$@") ]]; then
 		path="$(res "$1.path" "${2-}")"
-		[[ -f $path ]] && cat "$path"
+		[[ -f $path ]] && cat "$path" | modify "s/(^| )~/$(quote "$HOME")/g"
 	fi
 }
 
@@ -231,6 +231,18 @@ function explode {
 	local items
 	items=(${1//${2-;}/$'\n'})
 	print "$(trim "${items[@]}")"
+}
+
+function quote {
+	print "$(echo "$1" | sed 's/[]\\\\/.$&*{}|+?()[^]/\\&/g')"
+}
+
+function modify {
+	if [[ ${2-} ]]; then
+		sed -E -i .bak "$1" "$2" || warn "Can't modify $2"
+	else
+		sed -E "$1"
+	fi
 }
 
 function help {
