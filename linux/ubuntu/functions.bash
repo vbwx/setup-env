@@ -1,2 +1,2 @@
-source "$cwd/debian/functions.bash"
+source "$cwd/linux/debian/functions.bash"
 

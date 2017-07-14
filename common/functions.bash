@@ -29,17 +29,20 @@ function inhome {
 }
 
 function rundel {
-	local dir file
-	if [[ -d $1 ]]; then
-		dir="$1"
-		shift
-		(
-			cd "$dir"
-			[[ -f $2 || -f $3 ]] && "$@" && cd .. && rm -rvf "$dir"
-		) || die "Can't install $(basename "$dir")"
-	else
-		[[ -f $2 ]] && file="$2" || file="$3"
-		([[ -f $file ]] && "$@" && rm -vf "$file") || die "Can't install $(basename "$file")"
+	local dir
+	[[ ! -f ${@:(-1)} && ${download-} ]] && set - "$@" "$download"
+	if [[ -f ${@:(-1)} ]]; then
+		if [[ -d ${1-} ]]; then
+			dir="$1"
+			shift
+			(
+				cd "$dir"
+				"$@" && cd .. && rm -rvf "$dir"
+			) || die "Can't install $(basename "$dir")"
+		else
+			("$@" && rm -vf "${@:(-1)}") || die "Can't install $(basename "${@:(-1)}")"
+		fi
+		download=""
 	fi
 }
 
@@ -48,10 +51,13 @@ function clone {
 }
 
 function download {
-	if [[ $# -eq 1 ]]; then
-		curl -fsSL "$1" || warn "Can't download $1"
+	[[ "${2-}" ]] || set - "$1" "$TMPDIR/$(basename "$1")"
+	[[ -e $2 ]] && return
+	if curl --create-dirs -fsSLo "$2" "$1"; then
+		download="$2"
 	else
-		[[ -e $2 ]] || curl --create-dirs -fsSLo "$2" "$1" || warn "Can't download $1"
+		warn "Can't download $1"
+		download=""
 	fi
 }
 

@@ -1,2 +1,2 @@
-source "$cwd/centos/config.bash"
+source "$cwd/linux/centos/config.bash"
 

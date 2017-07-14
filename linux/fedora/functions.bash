@@ -1,4 +1,4 @@
-source "$cwd/centos/functions.bash"
+source "$cwd/linux/centos/functions.bash"
 
 function install {
 	dnf -y install "$@"

@@ -1,2 +1,2 @@
-source "$cwd/debian/config.bash"
+source "$cwd/linux/debian/config.bash"
 

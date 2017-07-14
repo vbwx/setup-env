@@ -1,2 +1,2 @@
-source "$cwd/debian/cleanup.bash"
+source "$cwd/linux/debian/cleanup.bash"
 

@@ -78,8 +78,8 @@ echo ">> APT repositories"
 #if ! inlists download.virtualbox.org; then
 #	echo "deb http://download.virtualbox.org/virtualbox/debian "$dist_ver" contrib" \
 #		>> /etc/apt/sources.list.d/oracle.list
-#	download https://www.virtualbox.org/download/oracle_vbox_2016.asc | apt-key add - || warn "Can't add public key oracle_vbox_2016.asc"
-#	download https://www.virtualbox.org/download/oracle_vbox.asc | apt-key add - || warn "Can't add public key oracle_vbox.asc"
+#	curl -fsSL https://www.virtualbox.org/download/oracle_vbox_2016.asc | apt-key add - || warn "Can't add public key oracle_vbox_2016.asc"
+#	curl -fsSL https://www.virtualbox.org/download/oracle_vbox.asc | apt-key add - || warn "Can't add public key oracle_vbox.asc"
 #fi
 
 #}}}
