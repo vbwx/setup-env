@@ -1,4 +1,4 @@
-poured python && brew unlink python
+installed python && brew unlink python
 
 exist pyenv || diecmd pyenv
 eval "$(pyenv init -)"

@@ -2,11 +2,11 @@ function isroot {
 	true
 }
 
-function poured {
+function installed {
 	test -d "$prefix/Cellar/$1"
 }
 
-function tapped {
+function available {
 	test -d "$prefix/Library/Taps/$1"
 }
 

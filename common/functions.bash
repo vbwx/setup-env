@@ -19,13 +19,25 @@ function exist {
 	type -t "$1" > /dev/null
 }
 
+function inshare {
+	[[ -e "/usr/share/$1" || -e "$prefix/share/$1" || -e "$HOME/.local/share/$1" ]]
+}
+
 function islocal {
 	local bin="$(type -P "$1" 2> /dev/null)"
 	exist "$1" && [[ ${bin#*$prefix} != $bin ]]
 }
 
 function inhome {
-	[[ -e "$HOME/$1" ]]
+	[[ -e "$HOME/$1" || -e "$HOME/.local/$1" ]]
+}
+
+function installed {
+	exist "$1" || inshare "$1" || inhome "bin/$1"
+}
+
+function available {
+	false
 }
 
 function rundel {
