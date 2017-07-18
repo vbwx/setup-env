@@ -6,5 +6,9 @@ function install {
 	apt-get -y install "$@"
 }
 
+function postinstall {
+	apt-get -f install
+}
+
 #function installed {
 #}

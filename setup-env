@@ -61,8 +61,6 @@ done
 
 [[ ${PATH#*$prefix/bin} = "$PATH" ]] && PATH="$prefix/bin:$PATH"
 
-run startup
-
 isroot || rerun
 
 echo ">> Dotfiles"
@@ -87,9 +85,6 @@ echo ">> APT repositories"
 echo ">> APT packages"
 
 echo ">> Shared files"
-
-echo ">> Cleanup"
-[[ $(var skip_cleanup) ]] || run cleanup
 
 echo ">> Done"
 

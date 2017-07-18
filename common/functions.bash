@@ -32,6 +32,10 @@ function inhome {
 	[[ -e "$HOME/$1" || -e "$HOME/.local/$1" ]]
 }
 
+function postinstall {
+	true
+}
+
 function installed {
 	exist "$1" || inshare "$1" || inhome "bin/$1"
 }
