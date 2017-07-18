@@ -1,6 +1,5 @@
-source "$cwd/linux/centos/functions.bash"
+use centos
 
 function install {
 	dnf -y install "$@"
 }
-

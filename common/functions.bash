@@ -128,7 +128,8 @@ function mapval {
 	if [[ ${1-} && ${!1+1} ]]; then
 		local map str mapvar=$1_map
 		if [[ ${!mapvar-} ]]; then
-			for str in "${!mapvar[@]}"; do
+			mapvar+="[@]"
+			for str in "${!mapvar}"; do
 				map=($(explode "$str"))
 				[[ ${map[1]+1} && ${map[0]} == ${!1} ]] && declare -g $1="${map[1]}"
 			done
@@ -175,6 +176,15 @@ function res {
 	done
 }
 
+function use {
+	local name
+	for name in "$platform/$1" "$platform/$1/$desktop" "$1" "$1/$desktop"; do
+		if [[ -f "$cwd/$name/$scope.bash" ]]; then
+			source "$cwd/$name/$scope.bash"
+		fi
+	done
+}
+
 function respath {
 	local path
 	if [[ $(res "$@") ]]; then
@@ -204,21 +214,38 @@ function myvar {
 }
 
 function list {
-	local name str arg found=""
+	local name str found=""
 	[[ $# -eq 0 ]] && return
 	for name in "$1" "${platform}_$1" "${dist}_$1" \
 		"${desktop}_${platform}_$1" "${desktop}_${dist}_$1"; do
 		if [[ ${!name+1} ]]; then
+			name+="[@]"
 			found=1
-			for str in "${!name[@]}"; do
+			for str in "${!name}"; do
 				println "${str//$'\n'/ }"
 			done
 		fi
 	done
 	if [[ ! $found ]]; then
 		shift
-		for arg in "$@"; do
-			println "$arg"
+		for str in "$@"; do
+			println "$str"
+		done
+	fi
+}
+
+function get {
+	local str name
+	[[ $# -eq 0 ]] && return
+	if [[ ${!1+1} ]]; then
+		name="$1[@]"
+		for str in "${!name}"; do
+			println "${str//$'\n'/ }"
+		done
+	else
+		shift
+		for str in "$@"; do
+			println "$str"
 		done
 	fi
 }
@@ -256,12 +283,30 @@ function explode {
 }
 
 function quote {
-	print "$(echo "$1" | sed 's/[]\\\\/.$&*{}|+?()[^]/\\&/g')"
+	print "$(echo "$1" | LC_ALL=C sed 's/[]\\\\/.$&*{}|+?()[^]/\\&/g')"
+}
+
+function escape {
+	print "$(echo "$1" | LC_ALL=C sed -e 's/[^a-zA-Z0-9,._+@%/-]/\\&/g; 1{$s/^$/""/}; 1!s/^/"/; $!s/$/"/')"
+}
+
+function assign {
+	local arg
+	if [[ $# -gt 2 ]]; then
+		println "${scope}_$1=("
+		shift
+		for arg in "$@"; do
+			println "    \"$(escape "$arg")\""
+		done
+		println ")"
+	else
+		println "${scope}_$1=\"$(escape "${2-}")\""
+	fi
 }
 
 function modify {
 	if [[ ${2-} ]]; then
-		sed -E -i .bak "$1" "$2" || warn "Can't modify $2"
+		sed -E -i "~" "$1" "$2" || warn "Can't modify $2"
 	else
 		sed -E "$1"
 	fi

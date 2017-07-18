@@ -1,2 +1,2 @@
-source "$cwd/linux/centos/config.bash"
+use centos
 

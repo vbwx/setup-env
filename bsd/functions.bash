@@ -1,0 +1,3 @@
+function installapp {
+	install "$@"
+}
