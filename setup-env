@@ -38,25 +38,27 @@ fi
 load functions
 load config common
 
-for arg in "$@"; do
-	case $arg in
-	(--help)
-		help
-		;;
-	(-s|--simulate)
-		simulate=1
-		;;
-	(-v|--verbose)
-		verbose=1
-		;;
-	(*)
-		if [[ -f "$arg.conf" ]]; then
-			source "$arg.conf"
-		else
-			source "$arg"
-		fi
-		;;
+OPTIND=1
+simulate=""
+verbose=""
+
+while getopts "hsv" opt; do
+	case $opt in
+		(h) help;;
+		(s) simulate=1;;
+		(v) verbose=1;;
 	esac
+done
+
+shift $((OPTIND-1))
+[[ $1 == '--' ]] && shift
+
+for arg in "$@"; do
+	if [[ -f "$arg.conf" ]]; then
+		source "$arg.conf"
+	else
+		source "$arg"
+	fi
 done
 
 [[ ${PATH#*$prefix/bin} = "$PATH" ]] && PATH="$prefix/bin:$PATH"
