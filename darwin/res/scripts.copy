@@ -1,0 +1,2 @@
+update > $prefix/bin
+rebuild > $prefix/bin
