@@ -207,7 +207,7 @@ function var {
 			return
 		fi
 	done
-	if [[ ${!1+1} ]];
+	if [[ ${!1+1} ]]; then
 		[[ ${ref-} ]] && print "\$$1" || print "${!1}"
 	else
 		[[ ${ref-} ]] || print "${2-}"
