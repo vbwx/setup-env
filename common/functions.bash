@@ -7,12 +7,12 @@ function print {
 }
 
 function die {
-	>&2 printf "\n%s!\n" "$*"
+	println "$script: $1" >&2
 	exit 1
 }
 
 function warn {
-	>&2 printf "\n%s!\n\n" "$*"
+	printf "\n%s!\n" "$*" >&2
 }
 
 function exist {
@@ -53,28 +53,27 @@ function rundel {
 			shift
 			(
 				cd "$dir"
-				"$@" && cd .. && rm -rvf "$dir"
-			) || die "Can't install $(basename "$dir")"
+				"$@"
+				cd ..
+				rm -rvf "$dir"
+			)
 		else
-			("$@" && rm -vf "${@:(-1)}") || die "Can't install $(basename "${@:(-1)}")"
+			"$@"
+			rm -vf "${@:(-1)}"
 		fi
 		download=""
 	fi
 }
 
 function clone {
-	[[ -e "${@:(-1)}" ]] || git clone "$@" || warn "Can't clone" "${@:(-2):1}"
+	[[ -e "${@:(-1)}" ]] || git clone "$@"
 }
 
 function download {
-	[[ "${2-}" ]] || set - "$1" "$TMPDIR/$(basename "$1")"
+	[[ ${2-} ]] || set - "$1" "$TMPDIR/$(basename "$1")"
 	[[ -e $2 ]] && return
-	if curl --create-dirs -fsSLo "$2" "$1"; then
-		download="$2"
-	else
-		warn "Can't download $1"
-		download=""
-	fi
+	curl --create-dirs -fsSLo "$2" "$1"
+	download="$2"
 }
 
 function copy {
@@ -117,11 +116,7 @@ function makedir {
 }
 
 function rerun {
-	if [[ $platform == "linux" ]]; then
-		exec -c sudo bash "$cwd/$script" "${args[@]}"
-	else
-		exec -c bash "$cwd/$script" "${args[@]}"
-	fi
+	exec -c "$cwd/$script" "${args[@]}"
 }
 
 function mapval {
@@ -138,15 +133,20 @@ function mapval {
 }
 
 function run {
-	local name
+	local name prev="$PWD"
 	set +f
 	for name in "$platform/$dist/$desktop/$1" "$platform/$desktop/$1" \
-		"$platform/$dist/$1" "$platform/$1" "${2-undefined}/$1"; do
+		"$platform/$dist/$1" "$platform/$1" "${2:-undefined}/$1"; do
 		if [[ -f "$cwd/$name.bash" ]]; then
-			scope="$1"
-			println ">> ${scope^}"
-			source "$cwd/$name.bash"
-			unset scope
+			if [[ ${ref-} ]]; then
+				println "$cwd/$name.bash"
+			else
+				declare -g scope="$1"
+				println ">> ${scope^}"
+				source "$cwd/$name.bash"
+				cd "$prev"
+				unset scope
+			fi
 			return
 		fi
 	done
@@ -154,21 +154,22 @@ function run {
 }
 
 function load {
-	scope="$1"
-	local name
-	for name in "${2-undefined}/$1" "$platform/$1" "$platform/$dist/$1" \
+	declare -g scope="$1"
+	local name prev="$PWD"
+	for name in "${2:-undefined}/$1" "$platform/$1" "$platform/$dist/$1" \
 		"$platform/$desktop/$1" "$platform/$dist/$desktop/$1"; do
 		if [[ -f "$cwd/$name.bash" ]]; then
 			source "$cwd/$name.bash"
 		fi
 	done
+	cd "$prev"
 	unset scope
 }
 
 function res {
 	local name
 	for name in "$platform/$dist/$desktop/res/$1" "$platform/$desktop/res/$1" \
-		"$platform/$dist/res/$1" "$platform/res/$1" "${2-undefined}/res/$1"; do
+		"$platform/$dist/res/$1" "$platform/res/$1" "${2:-undefined}/res/$1"; do
 		if [[ -e "$cwd/$name" ]]; then
 			print "$cwd/$name"
 			return
@@ -180,7 +181,8 @@ function use {
 	local name
 	for name in "$platform/$1" "$platform/$1/$desktop" "$1" "$1/$desktop"; do
 		if [[ -f "$cwd/$name/$scope.bash" ]]; then
-			source "$cwd/$name/$scope.bash"
+			[[ ${ref-} ]] && print "$cwd/$name/$scope.bash" || \
+				source "$cwd/$name/$scope.bash"
 		fi
 	done
 }
@@ -189,7 +191,10 @@ function respath {
 	local path
 	if [[ $(res "$@") ]]; then
 		path="$(res "$1.path" "${2-}")"
-		[[ -f $path ]] && cat "$path" | modify "s/(^| )~/$(quote "$HOME")/g"
+		if [[ -f $path ]]; then
+			[[ ${ref-} ]] && print "$path" || \
+				cat "$path" | modify "s/(^| )~/$(escape "$HOME")/g"
+		fi
 	fi
 }
 
@@ -198,11 +203,15 @@ function var {
 	for name in "${desktop}_${dist}_$1" "${desktop}_${platform}_$1" \
 		"${dist}_$1" "${platform}_$1"; do
 		if [[ ${!name+1} ]]; then
-			print "${!name}"
+			[[ ${ref-} ]] && print "\$$name" || print "${!name}"
 			return
 		fi
 	done
-	[[ ${!1+1} ]] && print "${!1}" || print "${2-}"
+	if [[ ${!1+1} ]];
+		[[ ${ref-} ]] && print "\$$1" || print "${!1}"
+	else
+		[[ ${ref-} ]] || print "${2-}"
+	fi
 }
 
 function myvar {
@@ -219,14 +228,18 @@ function list {
 	for name in "$1" "${platform}_$1" "${dist}_$1" \
 		"${desktop}_${platform}_$1" "${desktop}_${dist}_$1"; do
 		if [[ ${!name+1} ]]; then
-			name+="[@]"
-			found=1
-			for str in "${!name}"; do
-				println "${str//$'\n'/ }"
-			done
+			if [[ ${ref-} ]]; then
+				println "\$$name"
+			else
+				name+="[@]"
+				found=1
+				for str in "${!name}"; do
+					println "${str//$'\n'/ }"
+				done
+			fi
 		fi
 	done
-	if [[ ! $found ]]; then
+	if [[ ! $found && -z ${ref-} ]]; then
 		shift
 		for str in "$@"; do
 			println "$str"
@@ -238,11 +251,15 @@ function get {
 	local str name
 	[[ $# -eq 0 ]] && return
 	if [[ ${!1+1} ]]; then
-		name="$1[@]"
-		for str in "${!name}"; do
-			println "${str//$'\n'/ }"
-		done
-	else
+		if [[ ${ref-} ]]; then
+			print "\$$1"
+		else
+			name="$1[@]"
+			for str in "${!name}"; do
+				println "${str//$'\n'/ }"
+			done
+		fi
+	elif [[ -z ${ref-} ]]; then
 		shift
 		for str in "$@"; do
 			println "$str"
@@ -278,16 +295,23 @@ function trim {
 function explode {
 	[[ $# -eq 0 ]] && return
 	local items
-	items=(${1//${2-;}/$'\n'})
+	items=(${1//${2:-;}/$'\n'})
 	print "$(trim "${items[@]}")"
 }
 
-function quote {
+function escape {
 	print "$(echo "$1" | LC_ALL=C sed 's/[]\\\\/.$&*{}|+?()[^]/\\&/g')"
 }
 
-function escape {
-	print "$(echo "$1" | LC_ALL=C sed -e 's/[^a-zA-Z0-9,._+@%/-]/\\&/g; 1{$s/^$/""/}; 1!s/^/"/; $!s/$/"/')"
+function quote {
+	local first=1
+	for str in "$@"; do
+		[[ $first -eq 0 ]] && print " "
+		first=0
+		print "\"$(echo "$str" | LC_ALL=C sed -e \
+			's/[^a-zA-Z0-9,._+@%/-]/\\&/g; 1{$s/^$/""/}; 1!s/^/"/; $!s/$/"/' \
+			)\""
+	done
 }
 
 function assign {
@@ -296,31 +320,45 @@ function assign {
 		println "${scope}_$1=("
 		shift
 		for arg in "$@"; do
-			println "    \"$(escape "$arg")\""
+			println "  $(quote "$arg")"
 		done
 		println ")"
 	else
-		println "${scope}_$1=\"$(escape "${2-}")\""
+		println "${scope}_$1=$(quote "${2-}")"
 	fi
 }
 
 function modify {
 	if [[ ${2-} ]]; then
-		sed -E -i "~" "$1" "$2" || warn "Can't modify $2"
+		sed -E -i "~" "$1" "$2"
 	else
 		sed -E "$1"
 	fi
 }
 
-function help {
-	cat <<-EOF
-	usage: $script CONFIG...
+function usage {
+	println "usage: $script [OPTION]... CONFIG..." >&2
+	if [[ $# -eq 0 ]]; then
+		println "   or  $script --version"
+	else
+		println "Try '$script --help' for more information." >&2
+		exit $1
+	fi
+	println
+}
 
+function help {
+	usage 2>&1
+	cat <<-EOF
 	Set up your environment according to the currently used OS, desktop manager,
 	and CONFIG files.
 
 	Some commands require elevated privileges, so you may have to
 	authenticate as administrator a few times.
+	
+	OPTIONS
+	  -s    Show what would be done (doesn't install or delete anything)
+	  -v    Explain what is being done
 EOF
 	exit
 }

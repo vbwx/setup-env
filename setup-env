@@ -6,13 +6,11 @@ declare -x TMPDIR RBENV_ROOT PERLBREW_ROOT PYENV_ROOT NVM_DIR
 
 IFS=$'\n'
 script="setup-env"
-cwd="$(dirname "$0")"
+version=0.1
+cwd="$(dirname "$(readlink -f "$0")")"
 args=("$@")
-[[ ${cwd#*$script} == "$cwd" ]] && cwd="$(dirname "$1")"
 
 source "$cwd/common/functions.bash"
-
-[[ $# -eq 0 ]] && die ""
 
 platform="$(uname)"
 platform="${platform,,}"
@@ -38,20 +36,24 @@ fi
 load functions
 load config common
 
+[[ $# -eq 0 ]] && usage 1
+[[ $1 == "--help" ]] && help
+[[ $1 == "--version" ]] && println "$script $version" && exit
+
 OPTIND=1
 simulate=""
 verbose=""
 
-while getopts "hsv" opt; do
+while getopts "sv" opt; do
 	case $opt in
-		(h) help;;
 		(s) simulate=1;;
 		(v) verbose=1;;
+		(*) usage 1;;
 	esac
 done
 
 shift $((OPTIND-1))
-[[ $1 == '--' ]] && shift
+[[ $1 == '-' || $1 == '--' ]] && shift
 
 for arg in "$@"; do
 	if [[ -f "$arg.conf" ]]; then
@@ -78,8 +80,8 @@ echo ">> APT repositories"
 #if ! available download.virtualbox.org; then
 #	echo "deb http://download.virtualbox.org/virtualbox/debian "$dist_ver" contrib" \
 #		>> /etc/apt/sources.list.d/oracle.list
-#	curl -fsSL https://www.virtualbox.org/download/oracle_vbox_2016.asc | apt-key add - || warn "Can't add public key oracle_vbox_2016.asc"
-#	curl -fsSL https://www.virtualbox.org/download/oracle_vbox.asc | apt-key add - || warn "Can't add public key oracle_vbox.asc"
+#	curl -fsSL https://www.virtualbox.org/download/oracle_vbox_2016.asc | apt-key add -
+#	curl -fsSL https://www.virtualbox.org/download/oracle_vbox.asc | apt-key add -
 #fi
 
 #}}}

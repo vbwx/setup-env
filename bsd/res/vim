@@ -1,0 +1,55 @@
+#!/bin/bash
+
+name="`basename "$0"`"
+gui=
+opts=
+cmd=
+
+# GUI mode, implies forking
+case "$name" in g*|rg*) gui=true ;; esac
+
+# Restricted mode
+case "$name" in r*) opts="$opts -Z --noplugin";; esac
+
+# vimdiff, view, and ex mode
+case "$name" in
+	*vimdiff)
+		opts="$opts -dO"
+		;;
+	*view)
+		opts="$opts -R --noplugin"
+		;;
+	*ex)
+		opts="$opts -e"
+		;;
+	*man)
+		opts="$opts -R"
+		cmd="Man $1 $2 | silent only"
+		shift; shift
+		;;
+	vi)
+		opts="$opts --noplugin"
+		;;
+esac
+
+# Last step:  fire up vim.
+# The program should fork by default when started in GUI mode, but it does
+# not; we work around this when this script is invoked as "gvim" or "rgview"
+# etc., but not when it is invoked as "vim -g".
+if [ "$gui" ]; then
+	# Note: this isn't perfect, because any error output goes to the
+	# terminal instead of the console log.
+	# But if you use open instead, you will need to fully qualify the
+	# path names for any filenames you specify, which is hard.
+	if [ "$cmd" ]; then
+		> /dev/null exec /usr/bin/vim -g $opts "+$cmd" ${1:+"$@"}
+	else
+		> /dev/null exec /usr/bin/vim -g $opts ${1:+"$@"}
+	fi
+else
+	if [ "$cmd" ]; then
+		exec /usr/bin/vim $opts "+$cmd" ${1:+"$@"}
+	else
+		exec /usr/bin/vim $opts ${1:+"$@"}
+	fi
+fi

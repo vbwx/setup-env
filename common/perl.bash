@@ -1,16 +1,20 @@
+# Variables:
+#     perl_ver (string, default: latest) The Perl version to be installed
+
+local ver
+
 if ! exist perlbrew; then
 	download https://install.perlbrew.pl "$TMPDIR/perlbrew.sh"
 	rundel bash "$TMPDIR/perlbrew.sh"
 fi
-exist perlbrew || source "$PERLBREW_ROOT/etc/bashrc" || diecmd perlbrew
-
+exist perlbrew || source "$PERLBREW_ROOT/etc/bashrc"
 
 if ! islocal perl; then
-	perlbrew install -n stable || die "Can't install Perl"
-	ver="$(perlbrew list | perl -ne '/perl-[\d.]+/; print $&; $& and exit;')"
-	[ "$ver" ] || die "Can't find out installed Perl version"
+	ver="$(myvar ver latest)"
+	[[ $ver == "latest" ]] && ver="$(perlbrew list | perl -ne \
+		'/perl-([\d.]+)/ and print "$1"; $& and exit;')"
+	perlbrew install -n stable
 	perlbrew alias create perl-"$ver" default && perlbrew switch default
 fi
 
-exist cpan   || diecmd cpan
-islocal cpan || die "perlbrew doesn't seem to be active"
+islocal cpan || rerun

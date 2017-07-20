@@ -1,5 +1,3 @@
-[ -f "$setup/vim" ] || die "Can't find vim script"
-
 difcopy "$(res vim)" $prefix/bin
 
 islocal vi       || link $prefix/bin/vim $prefix/bin/vi
@@ -12,3 +10,5 @@ islocal vimdiff  || link $prefix/bin/vim $prefix/bin/vimdiff
 islocal gvimdiff || link $prefix/bin/vim $prefix/bin/gvimdiff
 islocal viman    || link $prefix/bin/vim $prefix/bin/viman
 islocal gviman   || link $prefix/bin/vim $prefix/bin/gviman
+
+use common

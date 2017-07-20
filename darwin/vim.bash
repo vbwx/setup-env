@@ -1,4 +1,3 @@
-[ -r "$(res mvim)" ] || die "Can't find mvim script"
 difcopy "$(res mvim)" $prefix/bin
 
 islocal vi       || link $prefix/bin/mvim $prefix/bin/vi
@@ -16,11 +15,5 @@ islocal mvimdiff || link $prefix/bin/mvim $prefix/bin/mvimdiff
 islocal viman    || link $prefix/bin/mvim $prefix/bin/viman
 islocal mviman   || link $prefix/bin/mvim $prefix/bin/mviman
 islocal gviman   || link $prefix/bin/mvim $prefix/bin/gviman
-islocal vim || diecmd vim
 
-download http://ftp.vim.org/pub/vim/runtime/spell/de.utf-8.spl "$HOME/.vim/spell/de.utf-8.spl"
-
-if ! inhome .vim/autoload/plug.vim; then
-	download https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim "$HOME/.vim/autoload/plug.vim"
-	vim -c PlugInstall -c q
-fi
+use common
