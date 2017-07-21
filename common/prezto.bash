@@ -1,6 +1,6 @@
 local rcfile
 
-clone --recursive https://github.com/vbwx/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
+clone https://github.com/vbwx/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
 if [ ! -L "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
 	for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/!(README.md); do
 		link "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"

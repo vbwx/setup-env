@@ -66,7 +66,7 @@ function rundel {
 }
 
 function clone {
-	[[ -e "${@:(-1)}" ]] || git clone "$@"
+	[[ -e "${@:(-1)}" ]] || git clone --recursive "$@"
 }
 
 function download {
@@ -355,7 +355,7 @@ function help {
 
 	Some commands require elevated privileges, so you may have to
 	authenticate as administrator a few times.
-	
+
 	OPTIONS
 	  -s    Show what would be done (doesn't install or delete anything)
 	  -v    Explain what is being done
