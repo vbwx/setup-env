@@ -6,6 +6,7 @@ targets=(
 	appcache
 	iconcache
 	spotlight
+	preferences
 )
 
 function help {
@@ -30,25 +31,28 @@ fi
 
 for t in $*; do
 	case $t in
-		all)
+		(all)
 			$0 ${targets[*]}
 			;;
-		iconcache)
+		(iconcache)
 			sudo find /private/var/folders -name com.apple.dock.iconcache -exec rm {} \;
 			sudo find /private/var/folders -name com.apple.iconservices -exec rm -rf {} \;
 			sudo rm -rf /Library/Caches/com.apple.iconservices.store
 			;;
-		appcache)
+		(appcache)
 			cd /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support
 			./lsregister -kill -r -domain local-domain system -domain user -seed
 			;;
-		spotlight)
+		(spotlight)
 			sudo mdutil -E /
 			;;
-		help|--help)
+		(preferences)
+			killall -u "$USER" cfprefsd
+			;;
+		(help|--help)
 			help
 			;;
-		*)
+		(*)
 			alt=($(which -a rebuild))
 			if [ ${#alt[@]} -gt 1 ]; then
 				${alt[1]} "$@"
