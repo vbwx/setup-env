@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -euo pipefail
+IFS=$'\n\t'
 
 targets=(
 	apt
@@ -8,8 +9,11 @@ targets=(
 	gem
 	npm
 	nvm
+	phpenv
 	pip
 	prezto
+	pyenv
+	rbenv
 	texlive
 	vim
 )
@@ -60,6 +64,18 @@ for t in $*; do
 			npm install -g npm@latest
 			npm update -g
 			;;
+		(phpenv)
+			cd "$(phpenv root)"
+			git pull
+			;;
+		(rbenv)
+			cd "$(rbenv root)"
+			git pull
+			;;
+		(pyenv)
+			cd "$(pyenv root)"
+			git pull
+			;;
 		(cpan)
 			cpan -u
 			;;
@@ -84,7 +100,7 @@ for t in $*; do
 			if [ ${#alt[@]} -gt 1 ]; then
 				${alt[1]} "$@"
 			else
-				>&2 echo "Unknown target: $t"
+				>&2 echo "update: unknown target: $t"
 				usage 1
 			fi
 	esac

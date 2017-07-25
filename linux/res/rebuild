@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -euo pipefail
+
+targets=(
+	locate
+)
+
+function help {
+	echo "The rebuild utility provides a simple interface to rebuild caches and databases."
+	usage
+}
+
+function usage {
+	echo -en "\nusage: rebuild (all"
+	for t in ${targets[*]}; do
+		echo -n " | $t"
+	done
+	echo ")"
+	echo "       rebuild help"
+	exit $*
+}
+
+if [ $# -eq 0 ]; then
+	>&2 echo "rebuild: target missing"
+	usage 1
+fi
+
+for t in $*; do
+	case $t in
+		(all)
+			$0 ${targets[*]}
+			;;
+		(locate)
+			sudo updatedb
+			;;
+		(help|--help)
+			help
+			;;
+		(*)
+			alt=($(which -a rebuild))
+			if [ ${#alt[@]} -gt 1 ]; then
+				${alt[1]} "$@"
+			else
+				>&2 echo "rebuild: unknown target: $t"
+				usage 1
+			fi
+	esac
+done
