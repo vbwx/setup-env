@@ -2,7 +2,6 @@
 
 set +o histexpand -o errexit -o nounset -o pipefail -o noglob
 shopt -s extglob
-declare -x TMPDIR RBENV_ROOT PERLBREW_ROOT PYENV_ROOT NVM_DIR
 
 IFS=$'\n'
 script="setup-env"
