@@ -15,5 +15,5 @@ function installapp {
 }
 
 function rerun {
-	exec -c sudo "$cwd/$script" "${args[@]}"
+	exec -c sudo bash "$cwd/$script" "${args[@]}"
 }

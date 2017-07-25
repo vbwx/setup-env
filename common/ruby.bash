@@ -4,7 +4,7 @@
 
 local ver
 
-eval "$(rbenv init -)"
+islocal ruby || eval "$(rbenv init -)"
 
 if ! islocal ruby; then
 	ver="$(myvar ver latest)"
@@ -12,6 +12,7 @@ if ! islocal ruby; then
 		'next unless /^\s*\d+\.\d+(\.\d+)?\n$/; s/\s//g; print; exit;')"
 	rbenv install "$ver"
 	rbenv global "$ver"
+	rbenv rehash
 fi
 
 islocal gem || rerun

@@ -4,7 +4,7 @@
 
 local ver
 
-eval "$(pyenv init -)"
+islocal python || eval "$(pyenv init -)"
 
 if ! islocal python; then
 	ver="$(myvar ver latest)"
@@ -13,3 +13,5 @@ if ! islocal python; then
 	pyenv install "$ver"
 	pyenv global "$ver"
 fi
+
+islocal pip || rerun

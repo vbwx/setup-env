@@ -116,7 +116,7 @@ function makedir {
 }
 
 function rerun {
-	exec -c "$cwd/$script" "${args[@]}"
+	exec -c bash "$cwd/$script" "${args[@]}"
 }
 
 function mapval {
