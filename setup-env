@@ -66,16 +66,6 @@ done
 
 isroot || rerun
 
-echo ">> Dotfiles"
-
-echo ">> Homebrew"
-
-echo ">> Homebrew packages"
-
-echo ">> Homebrew casks"
-
-echo ">> APT repositories"
-
 #if ! available download.virtualbox.org; then
 #	echo "deb http://download.virtualbox.org/virtualbox/debian "$dist_ver" contrib" \
 #		>> /etc/apt/sources.list.d/oracle.list
@@ -84,11 +74,5 @@ echo ">> APT repositories"
 #fi
 
 #}}}
-
-echo ">> APT packages"
-
-echo ">> Shared files"
-
-echo ">> Done"
 
 # vim: fdm=marker:fdl=0:fdc=3
