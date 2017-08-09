@@ -1,2 +1,1 @@
-use linux
-use common
+../linux/vim.bash

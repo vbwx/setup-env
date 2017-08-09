@@ -1,1 +1,1 @@
-use debian
+../debian/nitrogen.bash

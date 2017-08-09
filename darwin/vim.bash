@@ -1,4 +1,4 @@
-difcopy "$(res mvim)" $prefix/bin
+difcopy "$(res mvim)" $prefix/bin/
 
 islocal vi       || link $prefix/bin/mvim $prefix/bin/vi
 islocal vim      || link $prefix/bin/mvim $prefix/bin/vim

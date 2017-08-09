@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for id in $ids; do
+for id in {ids}; do
 	xinput --set-prop $id "Device Accel Velocity Scaling" 20
 	xinput --set-prop $id "Device Accel Constant Deceleration" 5
 done

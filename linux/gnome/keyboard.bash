@@ -1,3 +1,5 @@
+local file
+
 # Map [Shift]+[Backspace] to [Delete]
 for file in pc inet us macintosh_vndr/apple macintosh_vndr/us; do
 	modify "s/backspace,[[:space:]]*backspace/BackSpace, Delete/ig" /usr/share/X11/xkb/symbols/$file

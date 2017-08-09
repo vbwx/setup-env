@@ -1,1 +1,1 @@
-use debian
+../debian/google_chrome.bash

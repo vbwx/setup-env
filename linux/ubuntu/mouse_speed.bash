@@ -1,1 +1,1 @@
-use debian
+../debian/mouse_speed.bash

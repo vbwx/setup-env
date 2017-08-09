@@ -1,2 +1,1 @@
-use centos
-
+../centos/config.bash

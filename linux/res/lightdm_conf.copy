@@ -1,0 +1,1 @@
+inshare lightdm; /usr/share/lightdm/lightdm.conf.d/02_user.conf

@@ -1,1 +1,1 @@
-use debian
+../debian/tex.bash

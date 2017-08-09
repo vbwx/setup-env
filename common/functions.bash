@@ -77,34 +77,47 @@ function download {
 }
 
 function copy {
-	if [[ ${1-} ]]; then
-		makedir "${@:(-1)}"
-		[[ -e "${@:(-1)}/$(basename "$1")" ]] || cp -Rvf "$@"
+	local i dest
+	if [[ ${1-} && ${2-}]]; then
+		dest="${@:(-1)}"
+		i=$[$#-2]
+		[[ ${dest:(-1)} == '/' ]] && set - "${@:1:$i}" "$dest$(basename "$1")"
+		makedir "$(dirname "$dest")"
+		[[ -e "$dest" ]] || cp -Rvf "$@"
 	fi
 }
 
 function difcopy {
-	if [[ -f ${1-} ]]; then
-		local file="${2-}"
-		if [[ -f $file ]]; then
-			file="$file/$(basename "$1")"
-			makedir "$2"
-		else
-			makedir "$(dirname "$2")"
-		fi
-		diff "$1" "$file" &> /dev/null || cp -vf "$@"
+	if [[ ${1-} && ${2-} ]]; then
+		[[ ${2:(-1)} == '/' ]] && set - "$1" "$2$(basename "$1")"
+		makedir "$(dirname "$2")"
+		diff "$1" "$2" &> /dev/null || cp -vf "$1" "$2"
 	fi
 }
 
 function move {
-	if [[ ${1-} ]]; then
-		makedir "${@:(-1)}"
-		[[ -e "${@:(-1)}/$(basename "$1")" ]] || mv -vf "$@"
+	local i dest
+	if [[ ${1-} && ${2-} ]]; then
+		i=$[$#-2]
+		dest="${@:(-1)}"
+		[[ ${dest:(-1)} == '/' ]] && set - "${@:1:$i}" "$dest$(basename "$1")"
+		makedir "$(dirname "$dest")"
+		[[ -e "$dest" ]] || mv -vf "$@"
 	fi
 }
 
 function link {
+	local i dest
 	if [[ ${1-} ]]; then
+		if [[ ${2-} ]]; then
+			i=$[$#-2]
+			dest="${@:(-1)}"
+			if [[ ${dest:(-1)} == '/' ]]; then
+				makedir "$dest"
+			else
+				makedir "$(dirname "$dest")"
+			fi
+		fi
 		ln -vs "$@"
 	fi
 }
@@ -312,20 +325,6 @@ function quote {
 			's/[^a-zA-Z0-9,._+@%/-]/\\&/g; 1{$s/^$/""/}; 1!s/^/"/; $!s/$/"/' \
 			)\""
 	done
-}
-
-function assign {
-	local arg
-	if [[ $# -gt 2 ]]; then
-		println "${scope}_$1=("
-		shift
-		for arg in "$@"; do
-			println "  $(quote "$arg")"
-		done
-		println ")"
-	else
-		println "${scope}_$1=$(quote "${2-}")"
-	fi
 }
 
 function modify {

@@ -1,1 +1,1 @@
-use debian
+../debian/functions.bash
