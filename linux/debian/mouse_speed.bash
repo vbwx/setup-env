@@ -6,7 +6,7 @@ local ids file
 if ! inhome .config/autostart/mouse-speed.desktop; then
 	ids="$(myvar ids)"
 	[[ $ids ]] || ids="$(xinput --list --short | perl -ne \
-		'next unless //; print "$1 " if /(?:mouse|track ?(?:pad)?|touch ?pad).+id=(\d+)/i;')"
+		'print "$1 " if /(?:mouse|track ?(?:pad)?|touch ?pad).+id=(\d+)/i;')"
 	makedir "$HOME/.local/bin"
 	file="$(res mouse-speed)"
 	modify "s/{ids}/$ids/" "$file"
