@@ -46,8 +46,8 @@ function available {
 
 function rundel {
 	local dir
-	[[ ! -f ${@:(-1)} && ${download-} ]] && set - "$@" "$download"
-	if [[ -f ${@:(-1)} ]]; then
+	[[ ! -e ${@:(-1)} && ${download-} ]] && set - "$@" "$download"
+	if [[ -e ${@:(-1)} ]]; then
 		if [[ -d ${1-} ]]; then
 			dir="$1"
 			shift
@@ -150,7 +150,7 @@ function run {
 	set +f
 	for name in "$platform/$dist/$desktop/$1" "$platform/$desktop/$1" \
 		"$platform/$dist/$1" "$platform/$1" "${2:-undefined}/$1"; do
-		if [[ -f "$cwd/$name.bash" ]]; then
+		if [[ -e "$cwd/$name.bash" ]]; then
 			if [[ ${ref-} ]]; then
 				println "$cwd/$name.bash"
 			else
@@ -171,7 +171,7 @@ function load {
 	local name prev="$PWD"
 	for name in "${2:-undefined}/$1" "$platform/$1" "$platform/$dist/$1" \
 		"$platform/$desktop/$1" "$platform/$dist/$desktop/$1"; do
-		if [[ -f "$cwd/$name.bash" ]]; then
+		if [[ -e "$cwd/$name.bash" ]]; then
 			source "$cwd/$name.bash"
 		fi
 	done
@@ -193,7 +193,7 @@ function res {
 function use {
 	local name
 	for name in "$platform/$1" "$platform/$1/$desktop" "$1" "$1/$desktop"; do
-		if [[ -f "$cwd/$name/$scope.bash" ]]; then
+		if [[ -e "$cwd/$name/$scope.bash" ]]; then
 			[[ ${ref-} ]] && print "$cwd/$name/$scope.bash" || \
 				source "$cwd/$name/$scope.bash"
 		fi
@@ -204,7 +204,7 @@ function respath {
 	local path
 	if [[ $(res "$@") ]]; then
 		path="$(res "$1.path" "${2-}")"
-		if [[ -f $path ]]; then
+		if [[ -e $path ]]; then
 			[[ ${ref-} ]] && print "$path" || \
 				cat "$path" | modify "s/(^| )~/$(escape "$HOME")/g"
 		fi
