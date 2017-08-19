@@ -3,35 +3,13 @@
 set +o histexpand -o errexit -o nounset -o pipefail -o noglob
 shopt -s extglob
 
-IFS=$'\n'
 script="setup-env"
 version=0.1
+IFS=$'\n'
 cwd="$(dirname "$(readlink -f "$0")")"
 args=("$@")
 
 source "$cwd/common/functions.bash"
-
-platform="$(uname)"
-platform="${platform,,}"
-dist=""
-desktop=""
-if [[ $platform == "linux" ]]; then
-	if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
-		dist="$(lsb_release -i | cut -d: -f2 | sed 's/^\t//')"
-	else
-		set +f
-		dist="$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v lsb | cut -d/ -f3 | cut -d- -f1 | cut -d_ -f1)"
-		set -f
-	fi
-	distsetup="$(dirname "$0")/$dist"
-	desktop="$DESKTOP_SESSION"
-	mapval desktop
-elif [[ $platform == *bsd ]]; then
-	dist="$platform"
-	platform=bsd
-	desktop="$DESKTOP_SESSION"
-fi
-
 load functions
 load config common
 
@@ -62,9 +40,14 @@ for arg in "$@"; do
 	fi
 done
 
-[[ ${PATH#*$prefix/bin} = "$PATH" ]] && PATH="$prefix/bin:$PATH"
-
 isroot || rerun
+
+for step in "${steps[@]}"; do
+	println ">> $step"
+	source "$cwd/common/steps/$step.bash"
+done
+
+# Report failed installations
 
 #if ! available download.virtualbox.org; then
 #	echo "deb http://download.virtualbox.org/virtualbox/debian "$dist_ver" contrib" \

@@ -8,6 +8,16 @@ export NVM_DIR="$prefix/nvm"
 export PERLBREW_ROOT="$prefix/perlbrew"
 export PHPENV_ROOT="$prefix/phpenv"
 
+steps=(
+	init
+	src
+	env
+	pkg
+	app
+	copy
+	clean
+)
+
 lpaths=(
 	$prefix/bin
 	$prefix/sbin

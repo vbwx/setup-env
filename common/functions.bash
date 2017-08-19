@@ -155,7 +155,7 @@ function run {
 				println "$cwd/$name.bash"
 			else
 				declare -g scope="$1"
-				println ">> ${scope^}"
+				println ">>>> ${scope^}"
 				source "$cwd/$name.bash"
 				cd "$prev"
 				unset scope
