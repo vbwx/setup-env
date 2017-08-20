@@ -129,7 +129,7 @@ function makedir {
 }
 
 function rerun {
-	exec -c bash "$cwd/$script" "${args[@]}"
+	exec -c bash "$swd/$script" "${args[@]}"
 }
 
 function mapval {
@@ -150,13 +150,13 @@ function run {
 	set +f
 	for name in "$platform/$dist/$desktop/$1" "$platform/$desktop/$1" \
 		"$platform/$dist/$1" "$platform/$1" "${2:-undefined}/$1"; do
-		if [[ -e "$cwd/$name.bash" ]]; then
+		if [[ -e "$swd/$name.bash" ]]; then
 			if [[ ${ref-} ]]; then
-				println "$cwd/$name.bash"
+				println "$swd/$name.bash"
 			else
 				declare -g scope="$1"
 				println ">>>> ${scope^}"
-				source "$cwd/$name.bash"
+				source "$swd/$name.bash"
 				cd "$prev"
 				unset scope
 			fi
@@ -171,8 +171,8 @@ function load {
 	local name prev="$PWD"
 	for name in "${2:-undefined}/$1" "$platform/$1" "$platform/$dist/$1" \
 		"$platform/$desktop/$1" "$platform/$dist/$desktop/$1"; do
-		if [[ -e "$cwd/$name.bash" ]]; then
-			source "$cwd/$name.bash"
+		if [[ -e "$swd/$name.bash" ]]; then
+			source "$swd/$name.bash"
 		fi
 	done
 	cd "$prev"
@@ -183,8 +183,8 @@ function res {
 	local name
 	for name in "$platform/$dist/$desktop/res/$1" "$platform/$desktop/res/$1" \
 		"$platform/$dist/res/$1" "$platform/res/$1" "${2:-undefined}/res/$1"; do
-		if [[ -e "$cwd/$name" ]]; then
-			print "$cwd/$name"
+		if [[ -e "$swd/$name" ]]; then
+			print "$swd/$name"
 			return
 		fi
 	done
@@ -193,9 +193,9 @@ function res {
 function use {
 	local name
 	for name in "$platform/$1" "$platform/$1/$desktop" "$1" "$1/$desktop"; do
-		if [[ -e "$cwd/$name/$scope.bash" ]]; then
-			[[ ${ref-} ]] && print "$cwd/$name/$scope.bash" || \
-				source "$cwd/$name/$scope.bash"
+		if [[ -e "$swd/$name/$scope.bash" ]]; then
+			[[ ${ref-} ]] && print "$swd/$name/$scope.bash" || \
+				source "$swd/$name/$scope.bash"
 		fi
 	done
 }

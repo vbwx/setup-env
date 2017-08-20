@@ -3,5 +3,5 @@ function installapp {
 }
 
 function rerun {
-	exec -c su -c "bash \"$cwd/$script\" $(quote "${args[@]}")"
+	exec -c su -c "bash \"$swd/$script\" $(quote "${args[@]}")"
 }

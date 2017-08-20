@@ -6,10 +6,10 @@ shopt -s extglob
 script="setup-env"
 version=0.1
 IFS=$'\n'
-cwd="$(dirname "$(readlink -f "$0")")"
+swd="$(dirname "$(readlink -f "$0")")"
 args=("$@")
 
-source "$cwd/common/functions.bash"
+source "$swd/common/functions.bash"
 load functions
 load config common
 
@@ -44,7 +44,7 @@ isroot || rerun
 
 for step in "${steps[@]}"; do
 	println ">> $step"
-	source "$cwd/common/steps/$step.bash"
+	source "$swd/common/steps/$step.bash"
 done
 
 # Report failed installations
@@ -55,7 +55,5 @@ done
 #	curl -fsSL https://www.virtualbox.org/download/oracle_vbox_2016.asc | apt-key add -
 #	curl -fsSL https://www.virtualbox.org/download/oracle_vbox.asc | apt-key add -
 #fi
-
-#}}}
 
 # vim: fdm=marker:fdl=0:fdc=3
