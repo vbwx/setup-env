@@ -10,10 +10,6 @@ function isroot {
 	[[ -w /etc ]]
 }
 
-function installapp {
-	install "$@"
-}
-
 function rerun {
 	exec -c sudo bash "$swd/$script" "${args[@]}"
 }

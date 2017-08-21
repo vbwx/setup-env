@@ -19,22 +19,21 @@ targets=(
 )
 
 function help {
-	echo "The update utility provides a simple interface to perform updates of programs and packages."
+	printf "The update utility provides a simple interface to perform updates of programs and packages.\n"
 	usage
 }
 
 function usage {
-	echo -en "\nusage: update (all"
+	printf "\nusage: update (all"
 	for t in ${targets[*]}; do
-		echo -n " | $t"
+		printf " | $t"
 	done
-	echo ")"
-	echo "       update help"
+	printf ")\n       update help\n"
 	exit $*
 }
 
-if [ $# -eq 0 ]; then
-	>&2 echo "update: target missing"
+if [[ $# -eq 0 ]]; then
+	>&2 printf "update: target missing\n"
 	usage 1
 fi
 
@@ -87,7 +86,7 @@ for t in $*; do
 			gem cleanup
 			;;
 		(vim)
-			[ -f "$HOME/.vim/autoload/plug.vim" ] && vim +PlugUpgrade +PlugUpdate +qall
+			[[ -f "$HOME/.vim/autoload/plug.vim" ]] && vim +PlugUpgrade +PlugUpdate +qall
 			;;
 		(texlive)
 			sudo tlmgr update --all
@@ -97,10 +96,10 @@ for t in $*; do
 			;;
 		(*)
 			alt=($(which -a update))
-			if [ ${#alt[@]} -gt 1 ]; then
+			if [[ ${#alt[@]} -gt 1 ]]; then
 				${alt[1]} "$@"
 			else
-				>&2 echo "update: unknown target: $t"
+				>&2 printf "update: unknown target: $t\n"
 				usage 1
 			fi
 	esac

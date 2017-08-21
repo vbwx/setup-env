@@ -7,22 +7,21 @@ targets=(
 )
 
 function help {
-	echo "The rebuild utility provides a simple interface to rebuild caches and databases."
+	printf "The rebuild utility provides a simple interface to rebuild caches and databases.\n"
 	usage
 }
 
 function usage {
-	echo -en "\nusage: rebuild (all"
+	printf "\nusage: rebuild (all"
 	for t in ${targets[*]}; do
-		echo -n " | $t"
+		printf " | $t"
 	done
-	echo ")"
-	echo "       rebuild help"
+	printf ")\n       rebuild help\n"
 	exit $*
 }
 
-if [ $# -eq 0 ]; then
-	>&2 echo "rebuild: target missing"
+if [[ $# -eq 0 ]]; then
+	>&2 printf "rebuild: target missing\n"
 	usage 1
 fi
 
@@ -39,10 +38,10 @@ for t in $*; do
 			;;
 		(*)
 			alt=($(which -a rebuild))
-			if [ ${#alt[@]} -gt 1 ]; then
+			if [[ ${#alt[@]} -gt 1 ]]; then
 				${alt[1]} "$@"
 			else
-				>&2 echo "rebuild: unknown target: $t"
+				>&2 printf "rebuild: unknown target: $t\n"
 				usage 1
 			fi
 	esac

@@ -7,7 +7,7 @@ if [ ! -L "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
 	done
 fi
 
-echo "SHELL = $SHELL"
+println "SHELL = $SHELL"
 [[ $SHELL = "/bin/zsh" ]] || chsh -s /bin/zsh
 
 inhome .hushlogin || touch "$HOME/.hushlogin"

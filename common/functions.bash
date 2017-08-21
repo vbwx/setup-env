@@ -40,6 +40,18 @@ function installed {
 	exist "$1" || inshare "$1" || inhome "bin/$1"
 }
 
+function appinstalled {
+	installed "$@"
+}
+
+function install {
+	die "Not implemented on this platform"
+}
+
+function installapp {
+	install "$@"
+}
+
 function available {
 	false
 }
@@ -155,7 +167,6 @@ function run {
 				println "$swd/$name.bash"
 			else
 				declare -g scope="$1"
-				println ">>>> ${scope^}"
 				source "$swd/$name.bash"
 				cd "$prev"
 				unset scope
@@ -190,6 +201,17 @@ function res {
 	done
 }
 
+function tpl {
+	local name
+	for name in "$platform/$dist/$desktop/tpl/$1" "$platform/$desktop/tpl/$1" \
+		"$platform/$dist/tpl/$1" "$platform/tpl/$1" "${2:-undefined}/tpl/$1"; do
+		if [[ -e "$swd/$name" ]]; then
+			print "$swd/$name"
+			return
+		fi
+	done
+}
+
 function use {
 	local name
 	for name in "$platform/$1" "$platform/$1/$desktop" "$1" "$1/$desktop"; do
@@ -203,7 +225,7 @@ function use {
 function respath {
 	local path
 	if [[ $(res "$@") ]]; then
-		path="$(res "$1.path" "${2-}")"
+		path="$(res "$1.copy" "${2-}")"
 		if [[ -e $path ]]; then
 			[[ ${ref-} ]] && print "$path" || \
 				cat "$path" | modify "s/(^| )~/$(escape "$HOME")/g"
@@ -312,8 +334,15 @@ function explode {
 	print "$(trim "${items[@]}")"
 }
 
+function split {
+	[[ $# -eq 0 ]] && return
+	local items
+	items=(${1/${2:-=}/$'\n'})
+	print "$(trim "${items[@]}")"
+}
+
 function escape {
-	print "$(echo "$1" | LC_ALL=C sed 's/[]\\\\/.$&*{}|+?()[^]/\\&/g')"
+	print "$1" | LC_ALL=C sed 's/[]\\\\/.$&*{}|+?()[^]/\\&/g'
 }
 
 function quote {
@@ -321,7 +350,7 @@ function quote {
 	for str in "$@"; do
 		[[ $first -eq 0 ]] && print " "
 		first=0
-		print "\"$(echo "$str" | LC_ALL=C sed -e \
+		print "\"$(print "$str" | LC_ALL=C sed -e \
 			's/[^a-zA-Z0-9,._+@%/-]/\\&/g; 1{$s/^$/""/}; 1!s/^/"/; $!s/$/"/' \
 			)\""
 	done
